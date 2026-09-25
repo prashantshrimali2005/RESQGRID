@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { fetchReports } from './supabase';
 import { generateAlerts, Alert } from './pages/alerts';
 import { ShieldAlert } from 'lucide-react';
+export * from './components/TilerMap';
 
 export function Logo({ className = '' }: { className?: string }) {
   return (

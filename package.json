@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@types/google.maps": "^3.66.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
@@ -20,11 +19,12 @@
     "@emailjs/browser": "^4.4.1",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.116.0",
-    "@vis.gl/react-google-maps": "^1.10.0",
     "lucide-react": "^1.48.0",
+    "maplibre-gl": "^4.7.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-easy-crop": "^6.2.3",
+    "react-map-gl": "^7.1.9",
     "react-router-dom": "^7.18.3",
     "recharts": "^3.10.1"
   }

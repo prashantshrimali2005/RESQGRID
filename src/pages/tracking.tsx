@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Header, BottomNav } from '../components';
 import { fetchReportByTicket, fetchReports, CivicReport } from '../supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Map, Marker } from '@vis.gl/react-google-maps';
+import { TilerMap, TilerMarker } from '../components';
 
 export default function TrackingPage() {
   const { user } = useAuth();
@@ -293,15 +293,13 @@ export default function TrackingPage() {
             </div>
             
             <div className="relative w-full h-64 rounded-xl overflow-hidden bg-surface-container-high shadow-inner border border-outline-variant/10 z-10 isolate">
-              <Map
+              <TilerMap
                 defaultZoom={16}
                 defaultCenter={{ lat: currentReport.latitude, lng: currentReport.longitude }}
-                disableDefaultUI={true}
-                gestureHandling="greedy"
                 style={{width: '100%', height: '100%'}}
               >
-                <Marker position={{ lat: currentReport.latitude, lng: currentReport.longitude }} />
-              </Map>
+                <TilerMarker position={{ lat: currentReport.latitude, lng: currentReport.longitude }} />
+              </TilerMap>
             </div>
 
             {(currentReport.status === 'In Progress' || currentReport.status === 'Resolved') && (

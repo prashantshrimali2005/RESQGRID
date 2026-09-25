@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header, BottomNav, showToast } from '../components';
-import { Map, Marker, useMap, MapMouseEvent } from '@vis.gl/react-google-maps';
+import { TilerMap, TilerMarker, TilerMapHandle } from '../components';
+import React, { useRef } from 'react';
 import { 
   fetchReports, CivicReport, 
   fetchDisasters, Disaster,
@@ -49,15 +50,13 @@ export default function MapPage() {
   // Map State
   const [hasRequestedLoc, setHasRequestedLoc] = useState(false);
   const [droppedPin, setDroppedPin] = useState<{lat: number, lng: number} | null>(null);
-  const map = useMap("DEMO_MAP_ID");
+  const mapRef = useRef<TilerMapHandle>(null);
 
-  const handleMapClick = useCallback((e: MapMouseEvent) => {
-    if (e.detail.latLng) {
-      const lat = e.detail.latLng.lat;
-      const lng = e.detail.latLng.lng;
+  const handleMapClick = useCallback((e: { lat: number; lng: number }) => {
+      const lat = e.lat;
+      const lng = e.lng;
       setDroppedPin({ lat, lng });
       setSelectedItem(null);
-    }
   }, []);
 
   const locateUser = (silent = false) => {
@@ -70,7 +69,7 @@ export default function MapPage() {
             const pos = { lat: Number(data.latitude), lng: Number(data.longitude) };
             setDroppedPin(pos);
             setSelectedItem(null);
-            if (map) { map.panTo(pos); map.setZoom(13); }
+            if (mapRef.current) { mapRef.current.panTo(pos); mapRef.current.setZoom(13); }
             if (!isSilent) showToast('📍 Approximate location found');
             return;
           }
@@ -83,7 +82,7 @@ export default function MapPage() {
       const pos = { lat: 31.25471, lng: 75.70434 }; // Punjab center
       setDroppedPin(pos);
       setSelectedItem(null);
-      if (map) { map.panTo(pos); map.setZoom(9); }
+      if (mapRef.current) { mapRef.current.panTo(pos); mapRef.current.setZoom(9); }
       if (!isSilent) showToast("📍 Mock location (Punjab) used for Dome Testing.");
     };
 
@@ -94,7 +93,7 @@ export default function MapPage() {
         const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
         setDroppedPin(pos);
         setSelectedItem(null);
-        if (map) { map.panTo(pos); map.setZoom(14); }
+        if (mapRef.current) { mapRef.current.panTo(pos); mapRef.current.setZoom(14); }
       },
       (error) => {
         console.warn("Geolocation Error:", error);
@@ -105,11 +104,11 @@ export default function MapPage() {
   };
 
   useEffect(() => {
-    if (map && !hasRequestedLoc) {
+    if (mapRef.current && !hasRequestedLoc) {
       setHasRequestedLoc(true);
       locateUser(true);
     }
-  }, [map, hasRequestedLoc]);
+  }, [hasRequestedLoc]);
 
   useEffect(() => {
     async function load() {
@@ -179,16 +178,16 @@ export default function MapPage() {
         </div>
 
         <div className="absolute inset-0 z-0">
-          <Map
+          <TilerMap
+            ref={mapRef}
             id="DEMO_MAP_ID"
             defaultZoom={11}
             defaultCenter={{ lat: 31.25471, lng: 75.70434 }}
-            disableDefaultUI={true}
             onClick={handleMapClick}
           >
             {/* Render Incidents (Disasters + Reports) */}
             {(filter === 'All' || filter === 'Incident') && disasters.map(d => (
-               <Marker
+               <TilerMarker
                  key={'dis_'+d.id}
                  position={{ lat: d.latitude || 0, lng: d.longitude || 0 }}
                  onClick={() => { setSelectedItem(d); setItemType('Incident'); setDroppedPin(null); }}
@@ -198,7 +197,7 @@ export default function MapPage() {
 
             {/* Render Shelters */}
             {(filter === 'All' || filter === 'Shelter') && resources.filter(r => r.type === 'Shelter').map(r => (
-               <Marker
+               <TilerMarker
                  key={'res_'+r.id}
                  position={{ lat: r.latitude || 0, lng: r.longitude || 0 }}
                  onClick={() => { setSelectedItem(r); setItemType('Shelter'); setDroppedPin(null); }}
@@ -208,7 +207,7 @@ export default function MapPage() {
 
             {/* Render Medical (Mocking type checking) */}
             {(filter === 'All' || filter === 'Medical') && resources.filter(r => r.type === 'Medical').map(r => (
-               <Marker
+               <TilerMarker
                  key={'med_'+r.id}
                  position={{ lat: r.latitude || 0, lng: r.longitude || 0 }}
                  onClick={() => { setSelectedItem(r); setItemType('Medical'); setDroppedPin(null); }}
@@ -218,7 +217,7 @@ export default function MapPage() {
 
             {/* Render Resources */}
             {(filter === 'All' || filter === 'Resource') && reqOffers.map(r => (
-               <Marker
+               <TilerMarker
                  key={'req_'+r.id}
                  position={{ lat: r.latitude || 0, lng: r.longitude || 0 }}
                  onClick={() => { setSelectedItem(r); setItemType('Resource'); setDroppedPin(null); }}
@@ -228,7 +227,7 @@ export default function MapPage() {
 
             {/* Render Dome Test Pins */}
             {DOME_TEST_PINS.filter(p => filter === 'All' || filter === p.type).map(p => (
-               <Marker
+               <TilerMarker
                  key={p.id}
                  position={{ lat: p.lat, lng: p.lng }}
                  onClick={() => { setSelectedItem(p); setItemType(p.type); setDroppedPin(null); }}
@@ -237,17 +236,17 @@ export default function MapPage() {
             ))}
 
             {droppedPin && (
-              <Marker
+              <TilerMarker
                 position={droppedPin}
                 icon="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
                 zIndex={99}
                 draggable={true}
-                onDragEnd={(e: google.maps.MapMouseEvent) => {
-                  if (e.latLng) setDroppedPin({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+                onDragEnd={(e: { lat: number; lng: number }) => {
+                  setDroppedPin({ lat: e.lat, lng: e.lng });
                 }}
               />
             )}
-          </Map>
+          </TilerMap>
         </div>
         
         {/* Detail Card Overlay */}

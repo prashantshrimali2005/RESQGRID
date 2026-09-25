@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Header, showToast } from '../components';
-import { Map, Marker, useMap, useMapsLibrary, MapMouseEvent } from '@vis.gl/react-google-maps';
+import { Header, showToast, TilerMap, TilerMarker, TilerMapHandle } from '../components';
 import { createReport, uploadImage } from '../supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -33,17 +32,9 @@ export default function ReportPage() {
       : { lat: 31.25471, lng: 75.70434 }
   );
   const [pinDropped, setPinDropped] = useState(hasUrlCoords);
-  const map = useMap("DEMO_REPORT_MAP_ID");
-  const places = useMapsLibrary('places');
-  const geocoding = useMapsLibrary('geocoding');
+  const mapRef = useRef<TilerMapHandle>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const didInitFromUrl = useRef(false);
-
-  // Initialize geocoder
-  useEffect(() => {
-    if (geocoding) geocoderRef.current = new geocoding.Geocoder();
-  }, [geocoding]);
 
   const fallbackReverseGeocode = useCallback(async (lat: number, lng: number) => {
     try {
@@ -57,15 +48,6 @@ export default function ReportPage() {
   }, []);
 
   const reverseGeocode = useCallback((lat: number, lng: number) => {
-    if (geocoderRef.current) {
-      try {
-        geocoderRef.current.geocode({ location: { lat, lng } }, (results, status) => {
-          if (status === 'OK' && results && results[0]) setLocationAddress(results[0].formatted_address);
-          else fallbackReverseGeocode(lat, lng);
-        });
-        return;
-      } catch { fallbackReverseGeocode(lat, lng); return; }
-    }
     fallbackReverseGeocode(lat, lng);
   }, [fallbackReverseGeocode]);
 
@@ -74,41 +56,23 @@ export default function ReportPage() {
       didInitFromUrl.current = true;
       const lat = parseFloat(urlLat); const lng = parseFloat(urlLng);
       reverseGeocode(lat, lng);
-      if (map) { map.panTo({ lat, lng }); map.setZoom(17); }
+      if (mapRef.current) { mapRef.current.flyTo({ lat, lng }, 17); }
     }
-  }, [map, hasUrlCoords, urlLat, urlLng, reverseGeocode]);
+  }, [hasUrlCoords, urlLat, urlLng, reverseGeocode]);
 
   useEffect(() => {
     setDynamicFields({});
   }, [category]);
 
-  const handleMapClick = useCallback((e: MapMouseEvent) => {
-    if (e.detail.latLng) {
-      const lat = e.detail.latLng.lat; const lng = e.detail.latLng.lng;
-      setCoords({ lat, lng }); setPinDropped(true); reverseGeocode(lat, lng);
-    }
+  const handleMapClick = useCallback((e: { lat: number; lng: number }) => {
+    const lat = e.lat; const lng = e.lng;
+    setCoords({ lat, lng }); setPinDropped(true); reverseGeocode(lat, lng);
   }, [reverseGeocode]);
 
-  const handleMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const lat = e.latLng.lat(); const lng = e.latLng.lng();
-      setCoords({ lat, lng }); reverseGeocode(lat, lng);
-    }
+  const handleMarkerDragEnd = useCallback((e: { lat: number; lng: number }) => {
+    const lat = e.lat; const lng = e.lng;
+    setCoords({ lat, lng }); reverseGeocode(lat, lng);
   }, [reverseGeocode]);
-
-  useEffect(() => {
-    if (!places || !inputRef.current || step !== 1) return;
-    const autocomplete = new places.Autocomplete(inputRef.current, { fields: ['geometry', 'name', 'formatted_address'] });
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      if (place.geometry?.location) {
-        const lat = place.geometry.location.lat(); const lng = place.geometry.location.lng();
-        setCoords({ lat, lng }); setPinDropped(true);
-        setLocationAddress(place.formatted_address || place.name || '');
-        if (map) { map.panTo({ lat, lng }); map.setZoom(17); }
-      }
-    });
-  }, [places, map, step]);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -158,7 +122,7 @@ export default function ReportPage() {
       (position) => {
         const lat = position.coords.latitude; const lng = position.coords.longitude;
         setCoords({ lat, lng }); setPinDropped(true); reverseGeocode(lat, lng);
-        if (map) { map.panTo({ lat, lng }); map.setZoom(18); }
+        if (mapRef.current) { mapRef.current.flyTo({ lat, lng }, 18); }
         setIsLocating(false); showToast('📍 Location updated successfully');
       },
       (error) => {
@@ -516,9 +480,9 @@ export default function ReportPage() {
               </div>
               <div className="flex-1 rounded-2xl overflow-hidden shadow-card border border-border-light relative bg-surface-muted min-h-[400px]">
                 <div className="absolute inset-0 z-0">
-                  <Map id="DEMO_REPORT_MAP_ID" defaultZoom={17} defaultCenter={coords} disableDefaultUI={true} onClick={handleMapClick} style={{width: '100%', height: '100%', cursor: 'crosshair'}}>
-                    <Marker position={coords} draggable={true} onDragEnd={handleMarkerDragEnd} />
-                  </Map>
+                  <TilerMap ref={mapRef} id="DEMO_REPORT_MAP_ID" defaultZoom={17} center={coords} onClick={handleMapClick} style={{width: '100%', height: '100%', cursor: 'crosshair'}}>
+                    <TilerMarker position={coords} draggable={true} onDragEnd={handleMarkerDragEnd} />
+                  </TilerMap>
                 </div>
                 <button
                   type="button"

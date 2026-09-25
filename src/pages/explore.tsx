@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header, showToast } from '../components';
-import { Map, Marker, useMap, MapMouseEvent } from '@vis.gl/react-google-maps';
+import { TilerMap, TilerMarker, TilerMapHandle } from '../components';
+import React, { useRef } from 'react';
 import { fetchReports, CivicReport } from '../supabase';
 
 export default function ExplorePage() {
@@ -13,15 +14,13 @@ export default function ExplorePage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [hasRequestedLoc, setHasRequestedLoc] = useState(false);
   const [droppedPin, setDroppedPin] = useState<{lat: number, lng: number} | null>(null);
-  const map = useMap("DEMO_MAP_ID");
+  const mapRef = useRef<TilerMapHandle>(null);
 
-  const handleMapClick = useCallback((e: MapMouseEvent) => {
-    if (e.detail.latLng) {
-      const lat = e.detail.latLng.lat;
-      const lng = e.detail.latLng.lng;
+  const handleMapClick = useCallback((e: { lat: number; lng: number }) => {
+      const lat = e.lat;
+      const lng = e.lng;
       setDroppedPin({ lat, lng });
       setSelectedIssue(null);
-    }
   }, []);
 
   const locateUser = (silent = false) => {
@@ -37,9 +36,8 @@ export default function ExplorePage() {
         lng: position.coords.longitude,
       };
       setUserLocation(pos);
-      if (map) {
-        map.panTo(pos);
-        map.setZoom(15);
+      if (mapRef.current) {
+        mapRef.current.flyTo(pos, 15);
       }
     };
 
@@ -52,9 +50,8 @@ export default function ExplorePage() {
           if (data.latitude && data.longitude) {
             const pos = { lat: data.latitude, lng: data.longitude };
             setUserLocation(pos);
-            if (map) {
-              map.panTo(pos);
-              map.setZoom(13);
+            if (mapRef.current) {
+              mapRef.current.flyTo(pos, 13);
             }
             return;
           }
@@ -87,11 +84,11 @@ export default function ExplorePage() {
   };
 
   useEffect(() => {
-    if (map && !hasRequestedLoc) {
+    if (mapRef.current && !hasRequestedLoc) {
       setHasRequestedLoc(true);
       locateUser(true);
     }
-  }, [map, hasRequestedLoc]);
+  }, [hasRequestedLoc]);
 
   useEffect(() => {
     async function load() {
@@ -135,10 +132,10 @@ export default function ExplorePage() {
   });
 
   useEffect(() => {
-    if (searchTerm && filteredReports.length > 0 && map) {
-      map.panTo({ lat: filteredReports[0].latitude, lng: filteredReports[0].longitude });
+    if (searchTerm && filteredReports.length > 0 && mapRef.current) {
+      mapRef.current.panTo({ lat: filteredReports[0].latitude, lng: filteredReports[0].longitude });
     }
-  }, [searchTerm, filteredReports, map]);
+  }, [searchTerm, filteredReports]);
 
   return (
     <div className="w-full h-screen flex flex-col">
@@ -150,15 +147,15 @@ export default function ExplorePage() {
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <div className="absolute inset-0 bg-surface-container">
-          <Map
+          <TilerMap
+            ref={mapRef}
             defaultZoom={15}
             defaultCenter={{ lat: 31.25471, lng: 75.70434 }}
-            mapId="DEMO_MAP_ID"
-            disableDefaultUI={true}
+            id="DEMO_MAP_ID"
             onClick={handleMapClick}
           >
             {filteredReports.map((issue) => (
-              <Marker
+              <TilerMarker
                 key={issue.id || issue.ticket_id}
                 position={{ lat: issue.latitude, lng: issue.longitude }}
                 onClick={() => { setSelectedIssue(issue); setDroppedPin(null); }}
@@ -166,7 +163,7 @@ export default function ExplorePage() {
               />
             ))}
             {userLocation && (
-              <Marker 
+              <TilerMarker 
                 position={userLocation} 
                 icon="https://maps.google.com/mapfiles/ms/icons/blue-dot.png" 
                 title="Your Location"
@@ -174,20 +171,18 @@ export default function ExplorePage() {
               />
             )}
             {droppedPin && (
-              <Marker
+              <TilerMarker
                 position={droppedPin}
                 icon="https://maps.google.com/mapfiles/ms/icons/green-dot.png"
                 title="Dropped Pin"
                 zIndex={99}
                 draggable={true}
-                onDragEnd={(e: google.maps.MapMouseEvent) => {
-                  if (e.latLng) {
-                    setDroppedPin({ lat: e.latLng.lat(), lng: e.latLng.lng() });
-                  }
+                onDragEnd={(e: { lat: number; lng: number }) => {
+                    setDroppedPin({ lat: e.lat, lng: e.lng });
                 }}
               />
             )}
-          </Map>
+          </TilerMap>
         </div>
 
         <div className="absolute top-20 left-4 right-4 md:left-4 md:right-auto z-10 flex flex-col gap-3 pointer-events-none">

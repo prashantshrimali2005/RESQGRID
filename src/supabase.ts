@@ -86,8 +86,10 @@ export interface Volunteer {
   id: string; // references auth.users(id)
   skills?: string[];
   availability?: string;
+  location_name?: string;
   current_lat?: number;
   current_lng?: number;
+  radius_km?: number;
   verified?: boolean;
   created_at?: string;
   updated_at?: string;
