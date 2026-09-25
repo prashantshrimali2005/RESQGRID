@@ -1,13 +1,205 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RESQGRID - Disaster Information & Resource Coordination</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+  <title>RESQGRID — Disaster Response Ecosystem</title>
+  <meta name="description" content="RESQGRID connects citizens with disaster-response authorities, volunteers, shelters, and relief resources." />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <!-- Using Inter for high readability and UI, Roboto for clean data display -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'on-primary-fixed-variant': '#0039b5', 'inverse-on-surface': '#eaf1ff',
+            'primary': '#0037b0', 'surface-bright': '#f8f9ff', 'error': '#ba1a1a',
+            'on-surface': '#0b1c30', 'secondary': '#565e74', 'secondary-fixed': '#dae2fd',
+            'primary-fixed-dim': '#b7c4ff', 'tertiary-container': '#006b2c',
+            'outline-variant': '#c4c5d7', 'surface-container-highest': '#d3e4fe',
+            'inverse-primary': '#b7c4ff', 'primary-container': '#1d4ed8',
+            'on-error-container': '#93000a', 'on-background': '#0b1c30',
+            'on-secondary-fixed': '#131b2e', 'tertiary-fixed-dim': '#62df7d',
+            'on-error': '#ffffff', 'tertiary-fixed': '#7ffc97', 'surface': '#f8f9ff',
+            'surface-container-lowest': '#ffffff', 'primary-fixed': '#dce1ff',
+            'surface-tint': '#2151da', 'on-surface-variant': '#434655',
+            'on-tertiary-fixed-variant': '#005320', 'secondary-fixed-dim': '#bec6e0',
+            'on-primary-container': '#cad3ff', 'on-primary': '#ffffff',
+            'on-secondary-container': '#5c647a', 'inverse-surface': '#213145',
+            'surface-variant': '#d3e4fe', 'on-tertiary-fixed': '#002109',
+            'error-container': '#ffdad6', 'tertiary': '#00501f', 'on-secondary': '#ffffff',
+            'surface-dim': '#cbdbf5', 'surface-container': '#e5eeff',
+            'surface-container-low': '#eff4ff', 'surface-container-high': '#dce9ff',
+            'secondary-container': '#dae2fd', 'background': '#f8f9ff',
+            'on-tertiary': '#ffffff', 'outline': '#747686',
+            'on-tertiary-container': '#71ee8a', 'on-primary-fixed': '#001551',
+            'on-secondary-fixed-variant': '#3f465c',
+
+            // Emergency Colors
+            'critical': '#dc2626', // Red 600
+            'high': '#ea580c', // Orange 600
+            'warning': '#ca8a04', // Yellow 600
+            'safe': '#16a34a', // Green 600
+            'info': '#2563eb', // Blue 600
+            
+            // Brand Colors
+            'brand': {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#172554',
+            },
+            
+            // UI Colors
+            'surface-muted': '#f8fafc',
+            'surface-elevated': '#ffffff',
+            'surface-inverted': '#0f172a',
+            
+            'text-primary': '#0f172a',
+            'text-secondary': '#475569',
+            'text-muted': '#94a3b8',
+            'text-inverted': '#f8fafc',
+            
+            'border-light': '#e2e8f0',
+            'border-base': '#cbd5e1',
+          },
+          fontFamily: {
+            'sans': ['Inter', 'sans-serif'],
+            'mono': ['Roboto Mono', 'monospace'],
+          },
+          boxShadow: {
+            'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+            'elevated': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+            'floating': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            'glow-critical': '0 0 15px rgba(220, 38, 38, 0.5)',
+            'glow-brand': '0 0 15px rgba(37, 99, 235, 0.5)',
+          },
+          animation: {
+            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'slide-up': 'slideUp 0.3s ease-out forwards',
+            'fade-in': 'fadeIn 0.2s ease-out forwards',
+          },
+          keyframes: {
+            slideUp: {
+              '0%': { transform: 'translateY(10px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            }
+          },
+          spacing: {
+            'space-xs': '0.25rem',
+            'space-sm': '0.5rem',
+            'space-md': '1rem',
+            'space-lg': '1.5rem',
+            'space-xl': '2.5rem',
+            'space-2xl': '4rem',
+            'space-3xl': '6rem',
+            'gutter-sm': '1rem',
+            'gutter-md': '1.5rem',
+            'gutter-lg': '2rem',
+          },
+          fontSize: {
+            'display-lg': ['3.5rem', { lineHeight: '4rem', letterSpacing: '-0.25px' }],
+            'display-md': ['2.8125rem', { lineHeight: '3.25rem' }],
+            'display-sm': ['2.25rem', { lineHeight: '2.75rem' }],
+            'headline-lg': ['2rem', { lineHeight: '2.5rem' }],
+            'headline-md': ['1.75rem', { lineHeight: '2.25rem' }],
+            'headline-sm': ['1.5rem', { lineHeight: '2rem' }],
+            'title-lg': ['1.375rem', { lineHeight: '1.75rem' }],
+            'title-md': ['1rem', { lineHeight: '1.5rem', letterSpacing: '0.15px' }],
+            'title-sm': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.1px' }],
+            'body-lg': ['1rem', { lineHeight: '1.5rem', letterSpacing: '0.5px' }],
+            'body-md': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.25px' }],
+            'body-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.4px' }],
+            'label-lg': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.1px' }],
+            'label-md': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.5px' }],
+            'label-sm': ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.5px' }],
+          },
+          fontWeight: {
+            'display-lg': '400',
+            'display-md': '400',
+            'display-sm': '400',
+            'headline-lg': '400',
+            'headline-md': '400',
+            'headline-sm': '400',
+            'title-lg': '400',
+            'title-md': '500',
+            'title-sm': '500',
+            'body-lg': '400',
+            'body-md': '400',
+            'body-sm': '400',
+            'label-lg': '500',
+            'label-md': '500',
+            'label-sm': '500',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @layer base {
+      html, body { 
+        width: 100vw; 
+        margin: 0; 
+        padding: 0; 
+        min-height: 100%; 
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-family: 'Inter', sans-serif;
+      }
+      body { 
+        overscroll-behavior-y: none; 
+        -webkit-tap-highlight-color: transparent; 
+      }
+      
+      /* Hide scrollbar for clean UI */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+  <div id="app"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 </html>
