@@ -152,7 +152,6 @@ export default function MapPage() {
           <Map
             defaultZoom={11}
             defaultCenter={{ lat: 31.25471, lng: 75.70434 }}
-            mapId="DEMO_MAP_ID"
             disableDefaultUI={true}
             onClick={handleMapClick}
           >

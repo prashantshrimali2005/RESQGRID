@@ -4,6 +4,7 @@ import { Header, BottomNav } from '../components';
 import { fetchDisasters, fetchResources, Disaster, Resource, fetchRequestsOffers, RequestOffer } from '../supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertCircle, Map, HeartHandshake, Package, Navigation, MapPin, Activity, HelpCircle, Phone, RadioReceiver } from 'lucide-react';
+import { WeatherWidget } from '../WeatherWidget';
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -70,6 +71,8 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          <WeatherWidget />
 
           {/* Emergency Alert (if any) */}
           {activeDisastersCount > 0 && (

@@ -256,7 +256,7 @@ export default function ReportPage() {
                 />
               </div>
               <div className="flex-1 rounded-2xl overflow-hidden shadow-card border border-border-light relative bg-surface-muted min-h-[400px]">
-                <Map defaultZoom={17} defaultCenter={coords} mapId="DEMO_REPORT_MAP_ID" disableDefaultUI={true} onClick={handleMapClick} style={{width: '100%', height: '100%', cursor: 'crosshair'}}>
+                <Map defaultZoom={17} defaultCenter={coords} disableDefaultUI={true} onClick={handleMapClick} style={{width: '100%', height: '100%', cursor: 'crosshair'}}>
                   <Marker position={coords} draggable={true} onDragEnd={handleMarkerDragEnd} />
                 </Map>
                 <button
