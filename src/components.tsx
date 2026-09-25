@@ -97,12 +97,29 @@ export function Header({ title = '', showBack = false, showBrand = true }: Heade
         </div>
 
         {/* Central Top Navigation (Matches Landing Page Style) */}
-        <div className="hidden md:flex items-center gap-8">
-          <Link to="/dashboard" className={`font-semibold text-sm transition-colors ${currentPath === 'dashboard' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Dashboard</Link>
-          <Link to="/map" className={`font-semibold text-sm transition-colors ${currentPath === 'map' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Live Map</Link>
-          <Link to="/report" className={`font-semibold text-sm transition-colors ${currentPath === 'report' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Report</Link>
-          <Link to="/resources" className={`font-semibold text-sm transition-colors ${currentPath === 'resources' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Resources</Link>
-          <Link to="/volunteers" className={`font-semibold text-sm transition-colors ${currentPath === 'volunteers' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Volunteer</Link>
+        <div className="hidden md:flex items-center gap-2">
+          {[
+            { path: 'dashboard', label: 'Dashboard' },
+            { path: 'map', label: 'Live Map' },
+            { path: 'report', label: 'Report' },
+            { path: 'resources', label: 'Resources' },
+            { path: 'volunteers', label: 'Volunteer' },
+          ].map(item => {
+            const isActive = currentPath === item.path;
+            return (
+              <Link 
+                key={item.path} 
+                to={`/${item.path}`} 
+                className={`font-semibold text-sm px-4 py-2 rounded-full transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-brand-50 text-brand-600 shadow-sm ring-1 ring-brand-100' 
+                    : 'text-text-secondary hover:bg-surface-muted hover:text-text-primary'
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-space-sm relative">

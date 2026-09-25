@@ -22,6 +22,7 @@ export default function ReportPage() {
   const [peopleAffected, setPeopleAffected] = useState('Unknown');
   const [needsMedical, setNeedsMedical] = useState(false);
   const [needsRescue, setNeedsRescue] = useState(false);
+  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
   const [isLocating, setIsLocating] = useState(false);
   const [aiConfidence, setAiConfidence] = useState<number>(98);
   const [aiReason, setAiReason] = useState('');
@@ -76,6 +77,10 @@ export default function ReportPage() {
       if (map) { map.panTo({ lat, lng }); map.setZoom(17); }
     }
   }, [map, hasUrlCoords, urlLat, urlLng, reverseGeocode]);
+
+  useEffect(() => {
+    setDynamicFields({});
+  }, [category]);
 
   const handleMapClick = useCallback((e: MapMouseEvent) => {
     if (e.detail.latLng) {
@@ -177,10 +182,26 @@ export default function ReportPage() {
       const ticketId = `#REP-${Math.floor(1000 + Math.random() * 9000)}`;
       const priority = needsRescue || needsMedical ? 'Critical' : 'High';
       
+      let compiledDescription = description;
+      if (Object.keys(dynamicFields).length > 0) {
+        const dynamicText = Object.entries(dynamicFields)
+          .filter(([_, val]) => val !== '')
+          .map(([key, val]) => {
+            const formattedKey = key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return `${formattedKey}: ${val}`;
+          })
+          .join('\n');
+        compiledDescription = `[${category} Specifics]\n${dynamicText}\n\n[Additional Notes]\n${description}`;
+      }
+
+      if (category !== 'Missing person') {
+        compiledDescription += `\n\nPeople Affected: ${peopleAffected || 'Unknown'}`;
+      }
+
       await createReport({
         ticket_id: ticketId,
         category,
-        description: description || `Emergency reported at ${locationAddress}`,
+        description: compiledDescription || `Emergency reported at ${locationAddress}`,
         location_address: locationAddress,
         latitude: coords.lat,
         longitude: coords.lng,
@@ -208,10 +229,248 @@ export default function ReportPage() {
     'Medical emergency', 'Missing person', 'Power/infrastructure failure', 'Other disaster'
   ];
 
+  const renderDynamicFields = () => {
+    switch (category) {
+      case 'Missing person':
+        return (
+          <div className="space-y-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Full Name</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none focus:border-brand-500" 
+                  placeholder="e.g., John Doe"
+                  value={dynamicFields['name'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Age / Gender</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none focus:border-brand-500" 
+                  placeholder="e.g., 34 / Male"
+                  value={dynamicFields['age_gender'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, age_gender: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-text-secondary mb-1 block">Last Seen Location & Time</label>
+              <input 
+                type="text" 
+                className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none focus:border-brand-500" 
+                placeholder="e.g., Downtown mall at 4 PM"
+                value={dynamicFields['last_seen'] || ''}
+                onChange={(e) => setDynamicFields({...dynamicFields, last_seen: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-text-secondary mb-1 block">Clothing & Identifying Features</label>
+              <textarea 
+                className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none focus:border-brand-500" 
+                placeholder="e.g., Wearing a red jacket, blue jeans. Has a scar on left cheek."
+                rows={2}
+                value={dynamicFields['features'] || ''}
+                onChange={(e) => setDynamicFields({...dynamicFields, features: e.target.value})}
+              />
+            </div>
+          </div>
+        );
+      case 'Flood':
+      case 'Landslide':
+        return (
+          <div className="space-y-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Water/Debris Level</label>
+                <select 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                  value={dynamicFields['severity'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, severity: e.target.value})}
+                >
+                  <option value="">Select severity...</option>
+                  <option value="Low (Ankle deep)">Low (Ankle deep)</option>
+                  <option value="Medium (Knee deep)">Medium (Knee deep)</option>
+                  <option value="High (Waist deep)">High (Waist deep+)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Property Damage</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none focus:border-brand-500" 
+                  placeholder="e.g., Basement flooded"
+                  value={dynamicFields['damage'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, damage: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'Fire':
+        return (
+          <div className="space-y-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">What is burning?</label>
+                <select 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                  value={dynamicFields['burning_type'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, burning_type: e.target.value})}
+                >
+                  <option value="">Select type...</option>
+                  <option value="Building/Residential">Building/Residential</option>
+                  <option value="Forest/Vegetation">Forest/Vegetation</option>
+                  <option value="Vehicle/Industrial">Vehicle/Industrial</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Is it spreading?</label>
+                <select 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                  value={dynamicFields['spreading'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, spreading: e.target.value})}
+                >
+                  <option value="">Select...</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        );
+      case 'Building collapse':
+        return (
+          <div className="space-y-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Building Type</label>
+                <select 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                  value={dynamicFields['building_type'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, building_type: e.target.value})}
+                >
+                  <option value="">Select type...</option>
+                  <option value="Residential">Residential</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Industrial">Industrial</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Estimated Floors</label>
+                <input 
+                  type="number" 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none focus:border-brand-500" 
+                  placeholder="e.g., 3"
+                  value={dynamicFields['floors'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, floors: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'Road blockage':
+        return (
+          <div className="space-y-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Blockage Type</label>
+                <select 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                  value={dynamicFields['blockage_type'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, blockage_type: e.target.value})}
+                >
+                  <option value="">Select type...</option>
+                  <option value="Fallen Tree">Fallen Tree</option>
+                  <option value="Debris/Landslide">Debris/Landslide</option>
+                  <option value="Flooded">Flooded</option>
+                  <option value="Vehicle Accident">Vehicle Accident</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1 block">Is it passable?</label>
+                <select 
+                  className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                  value={dynamicFields['passable'] || ''}
+                  onChange={(e) => setDynamicFields({...dynamicFields, passable: e.target.value})}
+                >
+                  <option value="">Select...</option>
+                  <option value="Completely blocked">Completely blocked</option>
+                  <option value="Partially passable">Partially passable</option>
+                  <option value="Passable for heavy vehicles">Passable for heavy vehicles</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        );
+      case 'Medical emergency': {
+        const medicalConditions = [
+          'Severe Bleeding',
+          'Breathing Difficulties',
+          'Cardiac Arrest',
+          'Broken Bones / Trauma',
+          'Severe Burns',
+          'Unconscious'
+        ];
+        const currentConditions = dynamicFields['conditions'] ? dynamicFields['conditions'].split(', ') : [];
+        const toggleCondition = (cond: string) => {
+          let newConditions;
+          if (currentConditions.includes(cond)) {
+            newConditions = currentConditions.filter(c => c !== cond);
+          } else {
+            newConditions = [...currentConditions, cond];
+          }
+          setDynamicFields({...dynamicFields, conditions: newConditions.join(', ')});
+        };
+
+        return (
+          <div className="space-y-4 mb-4">
+            <div>
+              <label className="text-xs font-bold text-text-secondary mb-2 block">Select Suspected Conditions</label>
+              <div className="grid grid-cols-2 gap-2">
+                {medicalConditions.map(cond => (
+                  <label key={cond} className="flex items-center gap-2 cursor-pointer bg-surface-muted p-3 rounded-xl border border-border-light hover:border-brand-300 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 text-brand-600 rounded border-border-light focus:ring-brand-500"
+                      checked={currentConditions.includes(cond)}
+                      onChange={() => toggleCondition(cond)}
+                    />
+                    <span className="text-sm font-bold text-text-primary">{cond}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-xs font-bold text-text-secondary mb-1 block">Overall Patient Status</label>
+              <select 
+                className="w-full bg-surface-muted border border-border-light rounded-lg p-2.5 text-sm outline-none"
+                value={dynamicFields['patient_status'] || ''}
+                onChange={(e) => setDynamicFields({...dynamicFields, patient_status: e.target.value})}
+              >
+                <option value="">Select status...</option>
+                <option value="Conscious & Breathing">Conscious & Breathing</option>
+                <option value="Conscious but Struggling to Breathe">Conscious but Struggling to Breathe</option>
+                <option value="Unconscious but Breathing">Unconscious but Breathing</option>
+                <option value="Unconscious & Not Breathing">Unconscious & Not Breathing</option>
+              </select>
+            </div>
+          </div>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-surface-muted">
       <Header showBack />
-      <main className="flex-1 flex flex-col relative w-full h-full pt-20 pb-24 md:pb-8 md:pl-24">
+      <main className="flex-1 flex flex-col relative w-full h-full pt-20 pb-24 md:pb-24">
         
         <div className="px-4 md:px-8 pt-4 pb-4 bg-surface-muted z-10 sticky top-20">
           <div className="max-w-3xl mx-auto flex items-center justify-between">
@@ -256,9 +515,11 @@ export default function ReportPage() {
                 />
               </div>
               <div className="flex-1 rounded-2xl overflow-hidden shadow-card border border-border-light relative bg-surface-muted min-h-[400px]">
-                <Map defaultZoom={17} defaultCenter={coords} disableDefaultUI={true} onClick={handleMapClick} style={{width: '100%', height: '100%', cursor: 'crosshair'}}>
-                  <Marker position={coords} draggable={true} onDragEnd={handleMarkerDragEnd} />
-                </Map>
+                <div className="absolute inset-0 z-0">
+                  <Map id="DEMO_REPORT_MAP_ID" defaultZoom={17} defaultCenter={coords} disableDefaultUI={true} onClick={handleMapClick} style={{width: '100%', height: '100%', cursor: 'crosshair'}}>
+                    <Marker position={coords} draggable={true} onDragEnd={handleMarkerDragEnd} />
+                  </Map>
+                </div>
                 <button
                   type="button"
                   onClick={handleLocateMe}
@@ -294,7 +555,10 @@ export default function ReportPage() {
               </div>
 
               <div className="bg-white p-5 rounded-2xl shadow-card border border-border-light">
-                <label className="text-sm font-bold text-text-primary mb-3 block">Describe the Situation</label>
+                
+                {renderDynamicFields()}
+
+                <label className="text-sm font-bold text-text-primary mb-3 block">Additional Details</label>
                 <textarea 
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -302,21 +566,23 @@ export default function ReportPage() {
                   placeholder="E.g., The main bridge has collapsed, water levels rising rapidly..."
                 />
                 
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-text-secondary mb-1 block">People Affected</label>
-                    <select 
-                      value={peopleAffected} 
-                      onChange={(e) => setPeopleAffected(e.target.value)}
-                      className="w-full bg-surface-muted border border-border-light rounded-lg p-2 text-sm text-text-primary outline-none"
-                    >
-                      <option>Unknown</option>
-                      <option>1-5 people</option>
-                      <option>6-20 people</option>
-                      <option>20+ people</option>
-                    </select>
+                {category !== 'Missing person' && (
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary mb-1 block">People Affected</label>
+                      <select 
+                        value={peopleAffected} 
+                        onChange={(e) => setPeopleAffected(e.target.value)}
+                        className="w-full bg-surface-muted border border-border-light rounded-lg p-2 text-sm text-text-primary outline-none focus:border-brand-500"
+                      >
+                        <option>Unknown</option>
+                        <option>1-5 people</option>
+                        <option>6-20 people</option>
+                        <option>20+ people</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -438,7 +704,7 @@ export default function ReportPage() {
           )}
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 md:left-24 bg-white/90 backdrop-blur-xl border-t border-border-light p-4 z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-border-light p-4 z-40">
           <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
             {step > 1 ? (
               <button onClick={prevStep} className="h-12 px-6 rounded-xl bg-surface-muted text-text-primary font-bold hover:bg-border-light transition-colors border border-border-light shadow-sm">

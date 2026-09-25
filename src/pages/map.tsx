@@ -150,6 +150,7 @@ export default function MapPage() {
 
         <div className="absolute inset-0 z-0">
           <Map
+            id="DEMO_MAP_ID"
             defaultZoom={11}
             defaultCenter={{ lat: 31.25471, lng: 75.70434 }}
             disableDefaultUI={true}
