@@ -3,15 +3,16 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { fetchReports } from './supabase';
 import { generateAlerts, Alert } from './pages/alerts';
+import { ShieldAlert } from 'lucide-react';
 
 export function Logo({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" fill="none">
-      <rect x="4" y="6" width="28" height="28" rx="8" fill="#E11D48"/>
-      <path d="M18 11V29M9 20H27" stroke="white" strokeWidth="4.5" strokeLinecap="round"/>
-      <circle cx="18" cy="20" r="11" stroke="white" strokeWidth="2" strokeOpacity="0.4" strokeDasharray="2 2"/>
-      <text x="40" y="26" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="800" fontSize="20" letterSpacing="0.05em" fill="currentColor">RESQ<tspan fill="#E11D48">GRID</tspan></text>
-    </svg>
+    <div className={`flex items-center gap-2 font-bold text-xl tracking-tight ${className}`}>
+      <div className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center shrink-0">
+        <ShieldAlert size={14} />
+      </div>
+      RESQGRID
+    </div>
   );
 }
 

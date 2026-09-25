@@ -1,809 +1,555 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { showToast, Logo } from '../components';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { 
+  ShieldAlert, 
+  Map as MapIcon, 
+  Clock, 
+  Bell, 
+  ArrowRight, 
+  Radio, 
+  PhoneCall, 
+  AlertTriangle,
+  Info,
+  CheckCircle2,
+  Navigation,
+  HeartHandshake,
+  PackagePlus,
+  Users,
+  Search,
+  Menu,
+  X
+} from 'lucide-react';
 
-export default function HomePage() {
-  const { user } = useAuth();
-  const location = useLocation();
-  const [activeSection, setActiveSection] = useState<'home' | 'how-it-works' | 'about'>('home');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const LandingPage = ({ onNavigateToLogin }) => {
+  const [sosActive, setSosActive] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isOffline, setIsOffline] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  const scrollToSection = (id: string) => {
-    if (id === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const element = document.getElementById(id);
-    if (element) {
-      const navHeight = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleNavClick = (sectionId: 'home' | 'how-it-works' | 'about') => (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMobileMenuOpen(false);
-    setActiveSection(sectionId);
-    scrollToSection(sectionId);
-  };
-
-  // Handle direct navigation to #/how-it-works or #/about
+  // Simulate network connectivity changes
   useEffect(() => {
-    if (location.pathname === '/how-it-works' || location.hash.includes('how-it-works')) {
-      setActiveSection('how-it-works');
-      setTimeout(() => scrollToSection('how-it-works'), 150);
-    } else if (location.pathname === '/about' || location.hash.includes('about')) {
-      setActiveSection('about');
-      setTimeout(() => scrollToSection('about'), 150);
-    } else if (location.pathname === '/home') {
-      if (window.scrollY < 100) {
-        setActiveSection('home');
-      }
-    }
-  }, [location.pathname, location.hash]);
-
-  // Scroll spy to highlight active section in navbar
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const howItWorksEl = document.getElementById('how-it-works');
-      const aboutEl = document.getElementById('about');
-
-      if (howItWorksEl && scrollY >= howItWorksEl.offsetTop - 180) {
-        setActiveSection('how-it-works');
-      } else if (aboutEl && scrollY >= aboutEl.offsetTop - 180) {
-        setActiveSection('about');
-      } else {
-        setActiveSection('home');
-      }
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <>
-
-<header className="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-outline-variant/10">
-  <div className="h-20 w-full px-gutter-lg flex items-center justify-between">
-    <div className="flex items-center gap-space-md">
-      <Link to="/home" onClick={() => scrollToSection('home')} className="flex items-center gap-space-sm group">
-        <Logo className="h-8 w-auto text-on-surface group-hover:text-primary transition-colors" />
-      </Link>
-      <span className="hidden sm:inline-flex items-center px-space-sm py-space-xs rounded-full bg-secondary-container text-on-secondary-fixed-variant font-label-sm text-label-sm uppercase tracking-wide">Smart City Portal</span>
-    </div>
-
-    <nav className="hidden md:flex items-center gap-space-lg">
-      <button
-        type="button"
-        onClick={handleNavClick('home')}
-        className={`font-title-sm text-title-sm transition-colors py-1 cursor-pointer relative ${
-          activeSection === 'home'
-            ? 'text-primary font-semibold'
-            : 'text-on-surface-variant hover:text-on-surface'
-        }`}
-      >
-        <span>Home</span>
-        {activeSection === 'home' && (
-          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"></span>
-        )}
-      </button>
-      <button
-        type="button"
-        onClick={handleNavClick('about')}
-        className={`font-title-sm text-title-sm transition-colors py-1 cursor-pointer relative ${
-          activeSection === 'about'
-            ? 'text-primary font-semibold'
-            : 'text-on-surface-variant hover:text-on-surface'
-        }`}
-      >
-        <span>About</span>
-        {activeSection === 'about' && (
-          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"></span>
-        )}
-      </button>
-      <button
-        type="button"
-        onClick={handleNavClick('how-it-works')}
-        className={`font-title-sm text-title-sm transition-colors py-1 cursor-pointer relative ${
-          activeSection === 'how-it-works'
-            ? 'text-primary font-semibold'
-            : 'text-on-surface-variant hover:text-on-surface'
-        }`}
-      >
-        <span>How It Works</span>
-        {activeSection === 'how-it-works' && (
-          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"></span>
-        )}
-      </button>
-      {user ? (
-        <Link
-          to="/dashboard"
-          className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors py-1"
-        >
-          Dashboard
-        </Link>
-      ) : (
-        <Link
-          to="/login"
-          className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors py-1"
-        >
-          Login
-        </Link>
-      )}
-    </nav>
-
-    <div className="flex items-center gap-space-sm sm:gap-space-md">
-      <Link
-        to="/report"
-        className="inline-flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container hover:bg-primary text-on-primary font-title-sm text-title-sm shadow-[0_1px_3px_0_rgba(15,23,42,0.05)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary active:scale-95"
-      >
-        <span className="material-symbols-outlined text-[20px]">photo_camera</span>
-        <span className="hidden sm:inline">Report an Issue</span>
-        <span className="sm:hidden">Report</span>
-      </Link>
-
-      <Link
-        to="/profile"
-        title="View Profile"
-        className="w-9 h-9 rounded-full bg-surface-container-high hover:bg-primary text-primary hover:text-on-primary flex items-center justify-center transition-all shadow-sm hover:scale-105"
-      >
-        <span className="material-symbols-outlined text-[20px]">person</span>
-      </Link>
-
-      <button
-        type="button"
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-on-surface hover:bg-surface-container-high transition-colors"
-        aria-label="Toggle navigation menu"
-      >
-        <span className="material-symbols-outlined text-[24px]">
-          {mobileMenuOpen ? 'close' : 'menu'}
-        </span>
-      </button>
-    </div>
-  </div>
-
-  {/* Mobile Dropdown Navigation */}
-  {mobileMenuOpen && (
-    <div className="md:hidden w-full bg-surface/98 backdrop-blur-2xl border-b border-outline-variant/20 shadow-xl px-gutter-lg py-space-md flex flex-col gap-space-xs">
-      <button
-        type="button"
-        onClick={handleNavClick('home')}
-        className={`flex items-center gap-space-sm px-space-md py-space-sm rounded-xl font-title-sm text-title-sm transition-colors text-left ${
-          activeSection === 'home'
-            ? 'bg-primary/10 text-primary font-semibold'
-            : 'text-on-surface hover:bg-surface-container-low'
-        }`}
-      >
-        <span className="material-symbols-outlined text-[20px]">home</span>
-        <span>Home</span>
-      </button>
-      <button
-        type="button"
-        onClick={handleNavClick('about')}
-        className={`flex items-center gap-space-sm px-space-md py-space-sm rounded-xl font-title-sm text-title-sm transition-colors text-left ${
-          activeSection === 'about'
-            ? 'bg-primary/10 text-primary font-semibold'
-            : 'text-on-surface hover:bg-surface-container-low'
-        }`}
-      >
-        <span className="material-symbols-outlined text-[20px]">info</span>
-        <span>About RESQGRID</span>
-      </button>
-      <button
-        type="button"
-        onClick={handleNavClick('how-it-works')}
-        className={`flex items-center gap-space-sm px-space-md py-space-sm rounded-xl font-title-sm text-title-sm transition-colors text-left ${
-          activeSection === 'how-it-works'
-            ? 'bg-primary/10 text-primary font-semibold'
-            : 'text-on-surface hover:bg-surface-container-low'
-        }`}
-      >
-        <span className="material-symbols-outlined text-[20px]">account_tree</span>
-        <span>How It Works</span>
-      </button>
-      <Link
-        to="/map"
-        onClick={() => setMobileMenuOpen(false)}
-        className="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl font-title-sm text-title-sm text-on-surface hover:bg-surface-container-low transition-colors"
-      >
-        <span className="material-symbols-outlined text-[20px]">map</span>
-        <span>Ward Operations Map</span>
-      </Link>
-      {user ? (
-        <Link
-          to="/dashboard"
-          onClick={() => setMobileMenuOpen(false)}
-          className="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl font-title-sm text-title-sm text-on-surface hover:bg-surface-container-low transition-colors"
-        >
-          <span className="material-symbols-outlined text-[20px]">dashboard</span>
-          <span>Dashboard</span>
-        </Link>
-      ) : (
-        <Link
-          to="/login"
-          onClick={() => setMobileMenuOpen(false)}
-          className="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl font-title-sm text-title-sm text-on-surface hover:bg-surface-container-low transition-colors"
-        >
-          <span className="material-symbols-outlined text-[20px]">login</span>
-          <span>Login</span>
-        </Link>
-      )}
-      <div className="pt-space-xs mt-space-xs border-t border-outline-variant/10">
-        <Link
-          to="/report"
-          onClick={() => setMobileMenuOpen(false)}
-          className="w-full inline-flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-xl bg-primary text-on-primary font-title-sm text-title-sm shadow-sm"
-        >
-          <span className="material-symbols-outlined text-[20px]">photo_camera</span>
-          <span>Report an Issue</span>
-        </Link>
-      </div>
-    </div>
-  )}
-</header>
-<main className="w-full pt-20 bg-surface">
-  <div className="flex flex-col w-full">
-    {/**/}
-    <section className="w-full px-gutter-lg pt-space-lg">
-      <div className="max-w-7xl mx-auto flex items-center justify-between bg-surface-container-low rounded-xl p-space-sm px-space-md shadow-sm">
-        <div className="flex items-center gap-space-sm">
-          <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-          <span className="font-label-sm text-label-sm uppercase tracking-wider text-tertiary">Live System Status</span>
-          <span className="text-outline-variant font-body-sm text-body-sm">|</span>
-          <p className="font-body-sm text-body-sm text-on-surface-variant truncate">
-            Dispatch Engine v4.2 Active across 14 Municipal Wards. Mean triage duration: 11 minutes.
-          </p>
-        </div>
-
-      </div>
-    </section>
-    {/**/}
-    <section className="w-full px-gutter-lg pt-space-xl pb-space-2xl overflow-hidden">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
-        {/**/}
-        <div className="lg:col-span-6 flex flex-col items-start">
-          <div className="inline-flex items-center gap-space-xs px-space-sm py-space-xs rounded-full bg-secondary-container text-on-secondary-fixed-variant font-label-sm text-label-sm mb-space-md shadow-sm">
-            <span className="material-symbols-outlined text-[16px] text-primary">verified</span>
-            <span>Official Public Works Coordination Network</span>
+    <div className="min-h-screen">
+      {/* Navigation */}
+      <nav className="container">
+        <div className="navbar">
+          <div className="logo">
+            <div className="logo-icon">
+              <ShieldAlert size={16} />
+            </div>
+            RESQGRID
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight leading-tight">
-            Fix Your City. <br className="hidden sm:inline"/>
-            <span className="text-primary">One Report at a Time.</span>
-          </h1>
-          <p className="mt-space-md font-body-lg text-body-lg text-on-surface-variant max-w-xl">
-            Report civic problems, track their progress, and help build a better community with transparent AI-accelerated municipal triage.
-          </p>
-          {/**/}
-          <div className="mt-space-xl flex flex-wrap items-center gap-space-md w-full sm:w-auto">
-            <Link to="/report" className="inline-flex items-center justify-center gap-space-sm px-space-lg py-space-sm rounded-lg bg-primary-container hover:bg-primary text-on-primary font-title-md text-title-md shadow-md transition-all transform hover:-translate-y-0.5 focus:outline-none"  >
-              <span className="material-symbols-outlined text-[22px]">add_a_photo</span>
-              <span>Report an Issue</span>
-            </Link>
-            <Link to="/explore" className="inline-flex items-center justify-center gap-space-sm px-space-lg py-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-title-md text-title-md shadow-sm transition-colors"  >
-              <span className="material-symbols-outlined text-primary text-[22px]">explore</span>
-              <span>Explore Issues</span>
-            </Link>
-          </div>
-          {/**/}
-          <div className="mt-space-lg pt-space-md bg-surface-container-low/70 rounded-xl p-space-md w-full max-w-lg shadow-sm">
-            <div className="flex items-center gap-space-sm">
-              <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-primary font-bold">
-                <span className="material-symbols-outlined text-[18px]">bolt</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-title-sm text-title-sm text-on-surface">Average resolution time: 48 hours</span>
-                <span className="font-body-sm text-body-sm text-on-surface-variant">Over 12,400+ verified city repairs logged this calendar year</span>
-              </div>
-            </div>
-          </div>
-          {/**/}
-          <div className="mt-space-lg grid grid-cols-3 gap-space-md w-full max-w-lg">
-            <div className="bg-surface-container-lowest p-space-sm rounded-lg shadow-sm">
-              <div className="font-headline-sm text-headline-sm text-primary">99.1%</div>
-              <div className="font-label-sm text-label-sm text-on-surface-variant">GPS Precision</div>
-            </div>
-            <div className="bg-surface-container-lowest p-space-sm rounded-lg shadow-sm">
-              <div className="font-headline-sm text-headline-sm text-tertiary">14 Wards</div>
-              <div className="font-label-sm text-label-sm text-on-surface-variant">Coverage</div>
-            </div>
-            <div className="bg-surface-container-lowest p-space-sm rounded-lg shadow-sm">
-              <div className="font-headline-sm text-headline-sm text-on-surface">Zero</div>
-              <div className="font-label-sm text-label-sm text-on-surface-variant">Paperwork</div>
-            </div>
-          </div>
-        </div>
-        {/**/}
-        <div className="lg:col-span-6 relative">
-          {/**/}
-          <div className="absolute -top-10 -right-10 w-80 h-80 bg-primary-fixed rounded-full blur-3xl opacity-40 -z-10"></div>
-          <div className="absolute -bottom-10 -left-10 w-80 h-80 bg-tertiary-fixed rounded-full blur-3xl opacity-30 -z-10"></div>
-          {/**/}
-          <div className="w-full bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden p-space-sm">
-            {/**/}
-
-            <div className="relative w-full h-[460px] mt-space-sm rounded-xl overflow-hidden bg-surface-container-high">
-              <svg className="absolute inset-0 w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern height="40" id="grid" patternUnits="userSpaceOnUse" width="40">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbdbf5" strokeWidth="1"></path>
-                  </pattern>
-                </defs>
-                <rect fill="url(#grid)" height="100%" width="100%"></rect>
-                <path d="M-20,120 Q180,90 320,190 T640,240" fill="none" stroke="#ffffff" strokeLinecap="round" strokeWidth="12"></path>
-                <path d="M-20,120 Q180,90 320,190 T640,240" fill="none" stroke="#b7c4ff" strokeDasharray="6,6" strokeWidth="4"></path>
-                <path d="M220,-20 L280,500" fill="none" stroke="#ffffff" strokeWidth="16"></path>
-                <path d="M120,440 L480,40" fill="none" stroke="#ffffff" strokeWidth="10"></path>
-                {/**/}
-                <rect fill="#7ffc97" height="110" opacity="0.35" rx="16" width="130" x="360" y="40"></rect>
-                <text className="font-label-sm text-[11px] font-semibold tracking-wider" fill="#00501f" x="380" y="95">OAK PARK DIST.</text>
-                {/**/}
-                <path d="M40,460 C120,380 180,390 340,310 C420,270 520,320 620,290" fill="none" stroke="#d3e4fe" strokeLinecap="round" strokeWidth="24"></path>
-              </svg>
-              {/**/}
-              {/**/}
-              <div className="absolute top-[80px] left-[18px] sm:left-[35px] max-w-[270px] bg-surface-container-lowest p-space-sm rounded-xl shadow-lg transform transition hover:scale-105">
-                <div className="flex items-start gap-space-xs">
-                  <div className="w-7 h-7 rounded-full bg-error-container flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-error text-[16px]">warning</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="font-title-sm text-[12px] text-on-surface font-bold truncate">Pothole on Main Rd</span>
-                    </div>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-[10px] uppercase font-bold">Critical</span>
-                      <span className="font-body-sm text-[11px] text-on-surface-variant">Dispatched #924</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/**/}
-              <div className="absolute top-[148px] left-[70px] flex items-center justify-center">
-                <span className="w-4 h-4 rounded-full bg-error animate-ping absolute"></span>
-                <span className="w-3.5 h-3.5 rounded-full bg-error shadow-md border-2 border-surface-container-lowest"></span>
-              </div>
-              {/**/}
-              <div className="absolute top-[170px] right-[16px] sm:right-[32px] max-w-[260px] bg-surface-container-lowest p-space-sm rounded-xl shadow-lg transform transition hover:scale-105">
-                <div className="flex items-start gap-space-xs">
-                  <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-secondary text-[16px]">lightbulb</span>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-title-sm text-[12px] text-on-surface font-bold truncate">Streetlight Fault</span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-[10px]">5th Ave • Ward 2</span>
-                      <span className="font-body-sm text-[11px] text-on-surface-variant font-medium">Assigned</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute top-[238px] right-[90px] flex items-center justify-center">
-                <span className="w-3 h-3 rounded-full bg-secondary shadow-md border-2 border-surface-container-lowest"></span>
-              </div>
-              {/**/}
-              <div className="absolute bottom-[110px] left-[30px] sm:left-[60px] max-w-[270px] bg-surface-container-lowest p-space-sm rounded-xl shadow-lg transform transition hover:scale-105">
-                <div className="flex items-start gap-space-xs">
-                  <div className="w-7 h-7 rounded-full bg-surface-variant flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-primary text-[16px]">water_drop</span>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-title-sm text-[12px] text-on-surface font-bold truncate">Water Main Leak</span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="px-1.5 py-0.5 rounded bg-surface-variant text-primary font-label-sm text-[10px]">Market St</span>
-                      <span className="font-body-sm text-[11px] text-primary font-semibold">In Progress (64%)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute bottom-[80px] left-[130px] flex items-center justify-center">
-                <span className="w-4 h-4 rounded-full bg-primary animate-pulse absolute"></span>
-                <span className="w-3.5 h-3.5 rounded-full bg-primary shadow-md border-2 border-surface-container-lowest"></span>
-              </div>
-              {/**/}
-              <div className="absolute bottom-[24px] right-[24px] sm:right-[40px] max-w-[280px] bg-surface-container-lowest p-space-sm rounded-xl shadow-lg">
-                <div className="flex items-start gap-space-xs">
-                  <div className="w-7 h-7 rounded-full bg-tertiary-container flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-tertiary-fixed text-[16px]">task_alt</span>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-title-sm text-[12px] text-on-surface font-bold">Broken Footpath • Oak Park</span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="px-1.5 py-0.5 rounded bg-tertiary-fixed-dim/30 text-tertiary font-label-sm text-[10px] font-bold uppercase">Resolved 2h ago</span>
-                      <span className="font-body-sm text-[11px] text-on-surface-variant">Inspected ✓</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/**/}
-              <div className="absolute top-4 right-4 bg-inverse-surface/90 backdrop-blur-md px-space-sm py-1.5 rounded-xl shadow-xl flex items-center gap-space-xs text-inverse-on-surface">
-                <div className="w-6 h-6 rounded-md bg-primary-container flex items-center justify-center">
-                  <span className="material-symbols-outlined text-on-primary text-[14px]">auto_awesome</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-label-sm text-[10px] text-secondary-container">VISION MODEL V2</span>
-                  <span className="font-title-sm text-[11px] font-semibold">Instant AI Photo Analysis (98% confidence)</span>
-                </div>
-              </div>
-              {/**/}
-
-            </div>
-            {/**/}
-            <div className="mt-space-sm px-space-sm py-1 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-              <span className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px] text-tertiary">check_circle</span>
-                High-resolution spatial layer synced 2s ago
-              </span>
-              <span className="font-body-sm text-[11px]">Sub-meter GPS telemetry active</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    {/**/}
-    <section className="w-full px-gutter-lg py-space-xl bg-surface-container-low shadow-sm my-space-lg">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-space-lg">
-          <div>
-            <span className="font-label-sm text-label-sm uppercase tracking-wider text-primary font-semibold">Municipal Velocity Index</span>
-            <h2 className="font-headline-md text-headline-md text-on-surface mt-1">Measurable Civic Improvements</h2>
-          </div>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-2 md:mt-0">Audited public dashboard synchronized with city department feeds.</p>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Citizen Filings</span>
-              <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[20px]">assignment_turned_in</span>
-              </div>
-            </div>
-            <div className="mt-space-md">
-              <div className="font-headline-xl text-headline-xl text-on-surface tracking-tight" id="stat-reports">14,820</div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Verified Reports Filed</p>
-            </div>
-            <div className="mt-space-sm pt-space-xs flex items-center gap-1 text-tertiary font-label-sm text-label-sm">
-              <span className="material-symbols-outlined text-[14px]">trending_up</span>
-              <span>+18% from last quarter</span>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Completion Rate</span>
-              <div className="w-9 h-9 rounded-lg bg-tertiary-fixed-dim/40 flex items-center justify-center text-tertiary">
-                <span className="material-symbols-outlined text-[20px]">verified</span>
-              </div>
-            </div>
-            <div className="mt-space-md">
-              <div className="font-headline-xl text-headline-xl text-tertiary tracking-tight">94.2%</div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Resolution Rate</p>
-            </div>
-            <div className="mt-space-sm pt-space-xs flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
-              <span>Target: &gt;90% SLA compliance</span>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Integration</span>
-              <div className="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined text-[20px]">hub</span>
-              </div>
-            </div>
-            <div className="mt-space-md">
-              <div className="font-headline-xl text-headline-xl text-on-surface tracking-tight">28</div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Public Departments Connected</p>
-            </div>
-            <div className="mt-space-sm pt-space-xs flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
-              <span>Water, Roads, Power, Transit &amp; Parks</span>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">First Dispatch</span>
-              <div className="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[20px]">timer</span>
-              </div>
-            </div>
-            <div className="mt-space-md">
-              <div className="font-headline-xl text-headline-xl text-primary tracking-tight">3.8 hrs</div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Avg Response Time</p>
-            </div>
-            <div className="mt-space-sm pt-space-xs flex items-center gap-1 text-tertiary font-label-sm text-label-sm">
-              <span className="material-symbols-outlined text-[14px]">arrow_downward</span>
-              <span>Down from 18.4 hrs baseline</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    {/**/}
-    <section id="about" className="w-full px-gutter-lg py-space-2xl scroll-mt-24">
-      <div className="max-w-7xl mx-auto">
-        <div className="max-w-2xl mb-space-xl">
-          <span className="font-label-sm text-label-sm uppercase tracking-wider text-primary font-semibold">About RESQGRID • Core Architecture</span>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface mt-1">Designed for speed, built for accountability</h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-space-xs">
-            Transforming citizen input into immediate public works field dispatches through modern civic technology.
-          </p>
-        </div>
-        {/**/}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-lg">
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center mb-space-md shadow-sm">
-                <span className="material-symbols-outlined text-[26px]">touch_app</span>
-              </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">Report in seconds</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm">
-                Snap a photo or enter an address. Enjoy frictionless 3-step reporting without bureaucratic paperwork or endless municipal phone queues.
-              </p>
-            </div>
-            <div className="mt-space-lg pt-space-md bg-surface-container-low p-space-sm rounded-xl">
-              <span className="font-label-sm text-label-sm text-primary uppercase font-bold">Average time: 24 seconds</span>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-surface-variant text-primary flex items-center justify-center mb-space-md shadow-sm">
-                <span className="material-symbols-outlined text-[26px]">smart_toy</span>
-              </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">AI-powered issue detection</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm">
-                Computer vision model categorizes potholes, water leaks, and electrical hazards while assessing structural severity automatically.
-              </p>
-            </div>
-            <div className="mt-space-lg pt-space-md bg-surface-container-low p-space-sm rounded-xl">
-              <span className="font-label-sm text-label-sm text-primary uppercase font-bold">98.4% Classification Accuracy</span>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-fixed flex items-center justify-center mb-space-md shadow-sm">
-                <span className="material-symbols-outlined text-[26px]">alt_route</span>
-              </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">Automatic department routing</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm">
-                Instant smart dispatch directly to Public Works, Electrical Grid, Water Board, or Sanitation teams without administrative delays.
-              </p>
-            </div>
-            <div className="mt-space-lg pt-space-md bg-surface-container-low p-space-sm rounded-xl">
-              <span className="font-label-sm text-label-sm text-primary uppercase font-bold">Zero manual sorting</span>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-tertiary-fixed text-tertiary flex items-center justify-center mb-space-md shadow-sm">
-                <span className="material-symbols-outlined text-[26px]">fact_check</span>
-              </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">Real-time tracking</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm">
-                Live timeline updates from citizen submission to GPS crew arrival, culminating in verified before-and-after resolution proof.
-              </p>
-            </div>
-            <div className="mt-space-lg pt-space-md bg-surface-container-low p-space-sm rounded-xl">
-              <span className="font-label-sm text-label-sm text-tertiary uppercase font-bold">Photo verified resolution</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    {/**/}
-    <section id="how-it-works" className="w-full px-gutter-lg py-space-2xl bg-surface-container-low/50 scroll-mt-24">
-      <div className="max-w-7xl mx-auto">
-        {/**/}
-        <div className="text-center max-w-3xl mx-auto mb-space-2xl">
-          <span className="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">How It Works • End-to-End Workflow</span>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface mt-space-xs">Simple, Transparent, and Accountable</h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-space-xs">
-            From street report to municipal repair in 4 simple steps
-          </p>
-        </div>
-        {/**/}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-lg relative">
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md relative flex flex-col">
-            <div className="w-10 h-10 rounded-full bg-primary text-on-primary font-headline-sm text-headline-sm flex items-center justify-center mb-space-md shadow-sm">
-              1
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">1. Report</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm mb-space-md">
-              Snap a photo of any civic defect with automatic geo-tagging and quick citizen description.
-            </p>
-            <div className="mt-auto bg-surface-container rounded-xl p-space-sm overflow-hidden">
-              <img className="w-full h-36 object-cover rounded-lg" data-alt="A clean top-down smartphone mock preview showing a citizen capturing a camera photo of cracked asphalt with GPS coordinate badges overlaid in corporate blue and white." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqW-KDghVAJElP0yU1doHTA6HSM3klJ--kQqVL6XxbpMyOenjNiGSHCGuJUQjJt-d81g9e7f1L6LJwfvbEFiRUCg9Eor-C_7Dpu24jx-mv1NJ9JhKbi8tjLgowL1lTsuVwRSVAXWqUxy4HbPA4aSJFAifU1tRcYfKlpEHbn7tLctlW--O2gmqHkzvLuI35gfCGUXleQ7phmtqVVBdd2fTPvkKggrVS9iZeh1Gxt-KsMFkM5_FeMv26"/>
-              <div className="mt-2 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                <span className="font-semibold">Ward 7 • Main St</span>
-                <span className="text-primary">Auto-located</span>
-              </div>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md relative flex flex-col">
-            <div className="w-10 h-10 rounded-full bg-primary text-on-primary font-headline-sm text-headline-sm flex items-center justify-center mb-space-md shadow-sm">
-              2
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">2. AI Detects</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm mb-space-md">
-              Intelligent computer vision analyzes image severity, verifies authenticity, and tags the exact municipal department.
-            </p>
-            <div className="mt-auto bg-surface-container rounded-xl p-space-sm overflow-hidden">
-              {/**/}
-              <div className="w-full h-36 bg-surface-container-highest rounded-lg p-space-sm flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-sm text-[10px] uppercase font-bold text-primary">Analysis Complete</span>
-                  <span className="material-symbols-outlined text-primary text-[18px]">verified_user</span>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex justify-between font-label-sm text-[11px] text-on-surface">
-                    <span>Class: Roadway Depression</span>
-                    <span className="font-bold">99.2%</span>
-                  </div>
-                  <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                    <div className="bg-primary h-full rounded-full" style={{ width: '92%' }}></div>
-                  </div>
-                  <div className="flex justify-between font-label-sm text-[10px] text-on-surface-variant">
-                    <span>Priority: High</span>
-                    <span>Duplicate Check: Passed</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-2 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                <span>Department: Roads &amp; Transit</span>
-                <span className="text-tertiary">Verified</span>
-              </div>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md relative flex flex-col">
-            <div className="w-10 h-10 rounded-full bg-primary text-on-primary font-headline-sm text-headline-sm flex items-center justify-center mb-space-md shadow-sm">
-              3
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">3. Authority Acts</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm mb-space-md">
-              City field officers receive prioritized work orders and dispatch maintenance crews immediately.
-            </p>
-            <div className="mt-auto bg-surface-container rounded-xl p-space-sm overflow-hidden">
-              <img className="w-full h-36 object-cover rounded-lg" data-alt="Municipal municipal road maintenance crew wearing high-visibility vests working on an urban street repair with modern utility trucks under daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT6YSIg7yuimpwZIWFFGJKetHeQHJUuuSDkCdQzOF_60Wpfdx4fpS6SiA08L98EijXt0v9FVoWFREYhgf6QRdfTVWpV5yOp6TvF4JpX6VrEQJx32Y8aWJeUDdejdE5mZiliMUiHW3Vp-0xOk54scPC6KnSy33BCqQGGGXhOUoRjndpH-pobAMB1KMiDK6nK99wMEWD_yQcoc-5tnAsT8lNK2iEMeBoH8OeCxwCfL-RwYl_c4T-837N"/>
-              <div className="mt-2 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                <span>Crew Unit #14 Assigned</span>
-                <span className="text-on-secondary-fixed font-semibold">En Route</span>
-              </div>
-            </div>
-          </div>
-          {/**/}
-          <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-md relative flex flex-col">
-            <div className="w-10 h-10 rounded-full bg-tertiary text-on-tertiary font-headline-sm text-headline-sm flex items-center justify-center mb-space-md shadow-sm">
-              4
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">4. Issue Resolved</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-space-sm mb-space-md">
-              Public works team uploads before-and-after verification photo. Citizen receives confirmation and rates the fix.
-            </p>
-            <div className="mt-auto bg-surface-container rounded-xl p-space-sm overflow-hidden">
-              <div className="w-full h-36 bg-tertiary-fixed-dim/20 rounded-lg p-space-sm flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-sm text-[10px] uppercase font-bold text-tertiary">Inspection Signed Off</span>
-                  <span className="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
-                </div>
-                <div className="text-center py-2">
-                  <div className="text-tertiary font-headline-sm text-headline-sm font-bold">100% Repaired</div>
-                  <span className="font-body-sm text-[11px] text-on-surface-variant">Citizen feedback: ★★★★★ (5.0)</span>
-                </div>
-                <div className="w-full bg-tertiary-fixed h-1.5 rounded-full"></div>
-              </div>
-              <div className="mt-2 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                <span className="font-semibold text-tertiary">Case Closed</span>
-                <span>Logged to Public Ledger</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/**/}
-        <div className="mt-space-xl p-space-lg bg-surface-container-lowest rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-space-md">
-          <div className="flex items-center gap-space-md">
-            <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined text-[24px]">verified</span>
-            </div>
-            <div>
-              <h4 className="font-title-md text-title-md text-on-surface">Ready to report something in your neighborhood?</h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">No account required for immediate urgent hazard alerts.</p>
-            </div>
-          </div>
-          <Link to="/report" className="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary text-on-primary font-title-sm text-title-sm hover:bg-on-primary-fixed-variant transition-colors shadow-sm whitespace-nowrap"  >
-            <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-            <span>Start Citizen Report</span>
-          </Link>
-        </div>
-      </div>
-    </section>
-    {/**/}
-    <section className="w-full px-gutter-lg py-space-md bg-surface-container-highest">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-space-md">
-        <div className="flex items-center gap-space-sm">
-          <span className="font-label-sm text-label-sm uppercase font-bold text-on-surface">Latest Public Fixes:</span>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[11px] font-semibold">
-              ✓ Street light on Ward 3
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[11px] font-semibold">
-              ✓ Drainage clear on 8th Ave
-            </span>
-            <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[11px] font-semibold">
-              ✓ Stop sign replacement on Cedar Rd
-            </span>
-          </div>
-        </div>
-        <Link to="/tracking" className="text-primary font-title-sm text-title-sm hover:underline flex items-center gap-1"  >
-          <span>View full audit log</span>
-          <span className="material-symbols-outlined text-[16px]">launch</span>
-        </Link>
-      </div>
-    </section>
-    {/**/}
-    <section className="w-full px-gutter-lg py-space-2xl">
-      <div className="max-w-5xl mx-auto bg-primary-container text-on-primary rounded-2xl p-space-xl md:p-space-2xl shadow-xl relative overflow-hidden">
-        <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-on-primary-fixed-variant/40 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="relative z-10 max-w-2xl">
-          <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-primary-container font-semibold">Civic Pride In Action</span>
-          <h2 className="font-headline-lg text-headline-lg text-on-primary mt-space-xs">
-            Transform Your City With Simple, Transparent Reporting.
-          </h2>
-          <p className="font-body-lg text-body-lg text-on-primary-container mt-space-sm">
-            Join over 48,000 engaged neighbors, district engineers, and local councilors making streets safer every day.
-          </p>
-          <div className="mt-space-xl flex flex-wrap items-center gap-space-md">
-            <Link to="/report" className="inline-flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-surface text-primary font-title-md text-title-md hover:bg-surface-bright transition-all shadow-md"  >
-              <span className="material-symbols-outlined text-[20px]">add_a_photo</span>
-              <span>Submit a Civic Report</span>
-            </Link>
-            <button type="button" onClick={handleNavClick('how-it-works')} className="inline-flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-on-primary-fixed-variant/30 text-on-primary font-title-md text-title-md hover:bg-on-primary-fixed-variant/50 transition-colors cursor-pointer"  >
-              <span>Learn How Wards Participate</span>
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+          
+          <div className="hidden md:flex nav-links">
+            <a href="#how-it-works" className="nav-link">How it works</a>
+            <a href="#capabilities" className="nav-link">Capabilities</a>
+            <a href="#demo" className="nav-link">Explore demo</a>
+            <button 
+              className="btn btn-outline"
+              onClick={onNavigateToLogin}
+            >
+              Sign In
+            </button>
+            <button 
+              onClick={() => setSosActive(true)}
+              className="btn btn-sos"
+            >
+              <Radio size={16} /> SOS
             </button>
           </div>
-        </div>
-      </div>
-    </section>
-  </div>
-</main>
-<footer className="w-full bg-surface-container-low shadow-[0_-1px_0_rgba(0,0,0,0.04)] py-space-2xl">
-  <div className="w-full px-gutter-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-space-xl">
-    <div className="max-w-md">
-      <div className="flex items-center gap-space-sm mb-space-sm">
-        <Logo className="h-8 w-auto text-on-surface" />
-      </div>
-      <p className="font-body-md text-body-md text-on-surface-variant">Empowering citizens and municipal authorities with transparent, AI-driven public issue resolution.</p>
-    </div>
-    <div className="flex flex-wrap gap-space-lg">
-      <Link to="/dashboard" className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors"  >Platform Dashboard</Link>
-      <Link to="/admin" className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors"  >Departments Portal</Link>
-      <button type="button" onClick={() => showToast('CivicFix is committed to open data privacy and citizen security.')} className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"  >Privacy Policy</button>
-      <button type="button" onClick={() => showToast('Terms of Service: Municipal open access portal under civic trust.')} className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"  >Terms of Service</button>
-      <Link to="/dashboard" className="font-title-sm text-title-sm text-on-surface-variant hover:text-on-surface transition-colors"  >Hackathon Demo 2026</Link>
-    </div>
-  </div>
-  <div className="w-full px-gutter-lg mt-space-xl pt-space-lg flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-label-md text-label-md gap-space-sm">
-    <span>© 2026 RESQGRID Municipal Technologies. All rights reserved.</span>
-    <span>Civic Trust &amp; Open Infrastructure</span>
-  </div>
-</footer>
 
-    </>
+          <button 
+            className="md:hidden btn-ghost"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="md:hidden flex flex-col gap-4 py-4 border-t border-gray-200">
+             <a href="#how-it-works" className="nav-link" onClick={() => setShowMobileMenu(false)}>How it works</a>
+             <a href="#capabilities" className="nav-link" onClick={() => setShowMobileMenu(false)}>Capabilities</a>
+             <a href="#demo" className="nav-link" onClick={() => setShowMobileMenu(false)}>Explore demo</a>
+             <button 
+              className="btn btn-outline w-full"
+              onClick={() => { onNavigateToLogin(); setShowMobileMenu(false); }}
+            >
+              Sign In
+            </button>
+             <button 
+              onClick={() => { setSosActive(true); setShowMobileMenu(false); }}
+              className="btn btn-sos w-full"
+            >
+              <Radio size={16} /> SOS
+            </button>
+          </div>
+        )}
+      </nav>
+
+      {/* Network Status Indicator */}
+      {isOffline && (
+        <div className="bg-orange-100 text-orange-800 px-4 py-2 text-center text-sm font-medium flex justify-center items-center gap-2">
+          <AlertTriangle size={16} /> 
+          OFFLINE MODE: You are currently disconnected. Emergency requests will queue and sync when reconnected.
+          <span className="ml-4 bg-orange-200 px-2 py-1 rounded text-xs">3 actions waiting to sync</span>
+        </div>
+      )}
+
+      {/* Hero Section */}
+      <section className="container">
+        <div className="hero">
+          <div className="hero-content">
+            <div className="hero-subtitle">
+              Built for the moments that matter
+            </div>
+            <h1>When it matters, everyone moves as one.</h1>
+            <p className="hero-description">
+              RESQGRID brings citizens, responders, volunteers and resources into one calm, coordinated view — so help can move faster when every second counts.
+            </p>
+            <div className="flex flex-wrap gap-4 mt-6">
+              <button className="btn btn-primary">
+                Open live dashboard <ArrowRight size={16} />
+              </button>
+              <button className="btn btn-outline" onClick={() => setSosActive(true)}>
+                <Radio size={16} /> Try SOS flow
+              </button>
+            </div>
+            <div className="mt-8 flex items-center gap-3 text-sm text-[var(--text-secondary)]">
+              <div className="flex -space-x-2">
+                <div className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-blue-800 font-bold text-xs">R</div>
+                <div className="w-8 h-8 rounded-full bg-green-100 border-2 border-white flex items-center justify-center text-green-800 font-bold text-xs">J</div>
+                <div className="w-8 h-8 rounded-full bg-orange-100 border-2 border-white flex items-center justify-center text-orange-800 font-bold text-xs">K</div>
+                <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-gray-800 font-bold text-xs">+</div>
+              </div>
+              <span>Designed for citizens and the people who respond</span>
+            </div>
+          </div>
+          
+          <div className="hero-visual hidden md:flex">
+            <div className="app-mockup">
+              <div className="floating-alert top-right">
+                <div className="alert-icon warning">
+                  <AlertTriangle size={18} />
+                </div>
+                <div className="alert-content">
+                  <h4>Flash flood warning</h4>
+                  <p>Sector 17 • 6 min ago</p>
+                </div>
+              </div>
+              
+              <div className="floating-alert bottom-left">
+                <div className="alert-icon info">
+                  <Navigation size={18} />
+                </div>
+                <div className="alert-content">
+                  <h4>North District • Online</h4>
+                  <p>Live coordination • Updated just now</p>
+                </div>
+              </div>
+
+              <img 
+                src="https://images.unsplash.com/photo-1599839619722-39751411ea63?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                alt="Emergency Responders" 
+                className="mockup-img"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur p-4 border-t border-gray-100">
+                <div className="text-xs font-semibold text-green-600 mb-1 flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div> SYSTEM: OPERATIONAL
+                </div>
+                <div className="font-bold text-gray-800">14 responders active nearby</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Operations Dashboard */}
+      <section className="container pb-20">
+        <div className="text-center mb-12">
+          <div className="hero-subtitle justify-center mb-4">See it in action</div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--text-primary)]">A calmer view<br/>of crisis.</h2>
+        </div>
+
+        <div className="tabs justify-center">
+          <div className={`tab ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+            <Radio size={16} className="inline mr-2" /> Dashboard
+          </div>
+          <div className={`tab ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>
+            <MapIcon size={16} className="inline mr-2" /> Live map
+          </div>
+          <div className={`tab ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => setActiveTab('requests')}>
+            <Clock size={16} className="inline mr-2" /> Requests
+          </div>
+          <div className={`tab ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
+            <Bell size={16} className="inline mr-2" /> Alerts
+          </div>
+        </div>
+
+        {activeTab === 'map' && (
+          <div className="dashboard-preview animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="dashboard-header">
+              <div>
+                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold mb-1">Live Operations Map</div>
+                <h3 className="text-xl font-bold">North District</h3>
+              </div>
+              <button className="btn btn-outline text-sm py-1.5"><MapIcon size={14} className="mr-2" /> Filters</button>
+            </div>
+            
+            <div className="map-container">
+              {/* Map Markers */}
+              <div className="absolute top-1/4 left-1/4 bg-red-500 text-white p-2 rounded-full shadow-lg cursor-pointer transform hover:scale-110 transition-transform">
+                <AlertTriangle size={16} />
+              </div>
+              <div className="absolute top-1/2 left-1/3 bg-blue-500 text-white p-2 rounded-full shadow-lg cursor-pointer transform hover:scale-110 transition-transform">
+                <Navigation size={16} />
+              </div>
+              <div className="absolute bottom-1/3 right-1/4 bg-green-500 text-white p-2 rounded-full shadow-lg cursor-pointer transform hover:scale-110 transition-transform">
+                <ShieldAlert size={16} />
+              </div>
+              <div className="absolute top-1/3 right-1/3 bg-orange-500 text-white p-2 rounded-full shadow-lg cursor-pointer transform hover:scale-110 transition-transform">
+                <Users size={16} />
+              </div>
+              
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur rounded-lg p-2 shadow-sm border border-gray-100 flex gap-4 text-xs font-medium">
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Incidents</div>
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Shelters</div>
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Hospitals</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+               <div className="bg-white p-6 rounded-2xl shadow-[var(--shadow-sm)] border border-[var(--border-color)]">
+                  <h4 className="text-sm font-semibold text-[var(--text-secondary)] mb-2">Local Status</h4>
+                  <div className="text-2xl font-bold text-green-600 flex items-center gap-2">
+                    <CheckCircle2 size={24} /> Stable
+                  </div>
+                  <p className="text-sm mt-2 text-gray-500">All primary routes clear. 2 minor incidents reported.</p>
+               </div>
+               <div className="bg-white p-6 rounded-2xl shadow-[var(--shadow-sm)] border border-[var(--border-color)]">
+                  <h4 className="text-sm font-semibold text-[var(--text-secondary)] mb-2">Nearby Shelters</h4>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">3 <span className="text-sm font-normal text-gray-500">available</span></div>
+                  <div className="w-full bg-gray-100 h-2 rounded-full mt-3 overflow-hidden">
+                    <div className="bg-green-500 h-full w-[45%]"></div>
+                  </div>
+                  <p className="text-xs mt-1 text-gray-500 text-right">45% Capacity</p>
+               </div>
+               <div className="bg-white p-6 rounded-2xl shadow-[var(--shadow-sm)] border border-[var(--border-color)] bg-orange-50/50 border-orange-100">
+                  <h4 className="text-sm font-semibold text-orange-800 mb-2">Active Warnings</h4>
+                  <div className="text-lg font-bold text-orange-700 flex items-start gap-2">
+                    <AlertTriangle size={20} className="mt-0.5 shrink-0" />
+                    <span>Heavy rainfall expected in next 2 hours.</span>
+                  </div>
+               </div>
+             </div>
+
+             <h3 className="text-xl font-bold mb-4">Quick Actions</h3>
+             <div className="quick-actions">
+              <div className="action-card sos" onClick={() => setSosActive(true)}>
+                <div className="action-icon">
+                  <Radio size={24} />
+                </div>
+                <div className="action-title text-[var(--accent-coral)]">SOS Emergency</div>
+                <p className="text-xs text-[var(--text-secondary)]">Immediate life-threatening situations only</p>
+              </div>
+              
+              <div className="action-card">
+                <div className="action-icon">
+                  <AlertTriangle size={24} />
+                </div>
+                <div className="action-title">Report Incident</div>
+                <p className="text-xs text-[var(--text-secondary)]">Report fires, floods, blockages, etc.</p>
+              </div>
+              
+              <div className="action-card">
+                <div className="action-icon">
+                  <HeartHandshake size={24} />
+                </div>
+                <div className="action-title">Request Help</div>
+                <p className="text-xs text-[var(--text-secondary)]">Ask for food, water, medicine, or shelter</p>
+              </div>
+              
+              <div className="action-card">
+                <div className="action-icon" style={{backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e'}}>
+                  <Search size={24} />
+                </div>
+                <div className="action-title">Find Shelter</div>
+                <p className="text-xs text-[var(--text-secondary)]">Locate nearest safe zones and availability</p>
+              </div>
+
+              <div className="action-card">
+                <div className="action-icon" style={{backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6'}}>
+                  <PackagePlus size={24} />
+                </div>
+                <div className="action-title">Offer Resources</div>
+                <p className="text-xs text-[var(--text-secondary)]">Donate supplies or vehicles</p>
+              </div>
+
+              <div className="action-card">
+                <div className="action-icon" style={{backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6'}}>
+                  <Users size={24} />
+                </div>
+                <div className="action-title">Volunteer</div>
+                <p className="text-xs text-[var(--text-secondary)]">Register your skills and availability</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'requests' && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[var(--border-color)] animate-in fade-in duration-500">
+            <h3 className="text-xl font-bold mb-6">My Requests & Reports</h3>
+            
+            <div className="space-y-4">
+              <div className="border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                    <HeartHandshake size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold">Medical Assistance</h4>
+                      <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">Resolved</span>
+                    </div>
+                    <p className="text-sm text-gray-500 text-sm">Req #1024 • Submitted Today, 10:21 AM</p>
+                  </div>
+                </div>
+                <div className="md:text-right">
+                  <div className="text-sm font-semibold text-gray-700 mb-1">Responder: Sarah J.</div>
+                  <button className="text-sm text-[var(--accent-teal)] font-semibold hover:underline">View Timeline</button>
+                </div>
+              </div>
+
+              <div className="border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold">Road Blockage Reported</h4>
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">Under Review</span>
+                    </div>
+                    <p className="text-sm text-gray-500">Rep #2045 • Main St. Intersection</p>
+                  </div>
+                </div>
+                <div className="md:text-right">
+                  <button className="text-sm text-[var(--accent-teal)] font-semibold hover:underline">View Details</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'alerts' && (
+           <div className="bg-white rounded-2xl p-6 shadow-sm border border-[var(--border-color)] animate-in fade-in duration-500">
+             <h3 className="text-xl font-bold mb-6">Emergency Alerts</h3>
+             <div className="space-y-4">
+                <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-4">
+                  <div className="mt-1 text-red-600"><AlertTriangle size={24} /></div>
+                  <div>
+                    <h4 className="font-bold text-red-800">FLASH FLOOD WARNING</h4>
+                    <p className="text-sm text-red-700 mt-1">Residents in Sector 17 should move to higher ground immediately. Evacuation shelters at High School open.</p>
+                    <p className="text-xs text-red-500 mt-2">Issued 10 mins ago • Valid until 8:00 PM</p>
+                  </div>
+                </div>
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-4">
+                  <div className="mt-1 text-blue-600"><Info size={24} /></div>
+                  <div>
+                    <h4 className="font-bold text-blue-800">Power Restoration Update</h4>
+                    <p className="text-sm text-blue-700 mt-1">Crews are working on restoring power in the Downtown area. Expected resolution in 2 hours.</p>
+                    <p className="text-xs text-blue-500 mt-2">Issued 1 hr ago</p>
+                  </div>
+                </div>
+             </div>
+           </div>
+        )}
+      </section>
+
+      {/* SOS Modal Overlay */}
+      {sosActive && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="modal-close" onClick={() => setSosActive(false)}>
+              <X size={24} />
+            </button>
+            
+            <div className="sos-header">
+              <div className="sos-pulse">
+                <Radio size={32} />
+              </div>
+              <div className="text-xs font-bold text-[var(--accent-coral)] tracking-wider uppercase mb-2">SOS Active</div>
+              <h3 className="text-2xl font-bold text-[var(--text-primary)]">Help is on the way.</h3>
+              <p className="text-sm text-[var(--text-secondary)] mt-2">
+                Your emergency request has been sent to nearby responders.
+              </p>
+            </div>
+
+            <div className="sos-details">
+              <div className="detail-row">
+                <span className="detail-label">Request ID</span>
+                <span className="detail-value">REQ-2048</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Location</span>
+                <span className="detail-value flex items-center gap-1">North District <MapIcon size={12} className="text-gray-400" /></span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Response estimate</span>
+                <span className="detail-value text-green-600">8-12 minutes</span>
+              </div>
+            </div>
+
+            <div className="responder-card">
+              <div className="responder-avatar">AM</div>
+              <div className="responder-info flex-1">
+                <h5>Alex M. <span className="text-xs font-normal text-gray-500 ml-1">assigned</span></h5>
+                <p>First responder • 1.2 km away</p>
+              </div>
+              <div className="text-xs font-bold text-green-600 flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> EN ROUTE
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button className="btn btn-primary w-full bg-[var(--text-primary)] text-white hover:bg-[var(--text-secondary)]">
+                Keep this screen open <CheckCircle2 size={16} className="ml-1" />
+              </button>
+              <button className="btn bg-gray-100 text-gray-700 hover:bg-gray-200 p-3" title="Call Emergency Services">
+                <PhoneCall size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Tailwind utility classes for quick inline styling without huge css file */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .hidden { display: none; }
+        @media (min-width: 768px) { .md\\:flex { display: flex; } .md\\:hidden { display: none; } }
+        .flex-wrap { flex-wrap: wrap; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mb-12 { margin-bottom: 3rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .pb-20 { padding-bottom: 5rem; }
+        .text-center { text-align: center; }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        @media (min-width: 768px) { .md\\:text-5xl { font-size: 3rem; line-height: 1; } .md\\:flex-row { flex-direction: row; } .md\\:text-right { text-align: right; } }
+        .font-extrabold { font-weight: 800; }
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        @media (min-width: 768px) { .md\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .w-full { width: 100%; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .uppercase { text-transform: uppercase; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .bg-white { background-color: rgb(255 255 255); }
+        .bg-gray-100 { background-color: rgb(243 244 246); }
+        .bg-gray-200 { background-color: rgb(229 231 235); }
+        .bg-red-50 { background-color: rgb(254 242 242); }
+        .bg-red-100 { background-color: rgb(254 226 226); }
+        .bg-red-500 { background-color: rgb(239 68 68); }
+        .bg-green-100 { background-color: rgb(220 252 231); }
+        .bg-green-500 { background-color: rgb(34 197 94); }
+        .bg-blue-50 { background-color: rgb(239 246 255); }
+        .bg-blue-100 { background-color: rgb(219 234 254); }
+        .bg-blue-500 { background-color: rgb(59 130 246); }
+        .bg-orange-50 { background-color: rgb(255 247 237); }
+        .bg-orange-100 { background-color: rgb(255 237 213); }
+        .bg-orange-200 { background-color: rgb(254 215 170); }
+        .bg-orange-500 { background-color: rgb(249 115 22); }
+        .text-gray-400 { color: rgb(156 163 175); }
+        .text-gray-500 { color: rgb(107 114 128); }
+        .text-gray-700 { color: rgb(55 65 81); }
+        .text-red-500 { color: rgb(239 68 68); }
+        .text-red-600 { color: rgb(220 38 38); }
+        .text-red-700 { color: rgb(185 28 28); }
+        .text-red-800 { color: rgb(153 27 27); }
+        .text-green-600 { color: rgb(22 163 74); }
+        .text-green-700 { color: rgb(21 128 61); }
+        .text-blue-500 { color: rgb(59 130 246); }
+        .text-blue-600 { color: rgb(37 99 235); }
+        .text-blue-700 { color: rgb(29 78 216); }
+        .text-blue-800 { color: rgb(30 64 175); }
+        .text-orange-600 { color: rgb(234 88 12); }
+        .text-orange-700 { color: rgb(194 65 12); }
+        .text-orange-800 { color: rgb(154 52 18); }
+        .border-gray-100 { border-color: rgb(243 244 246); }
+        .border-red-100 { border-color: rgb(254 226 226); }
+        .border-blue-100 { border-color: rgb(219 234 254); }
+        .border-orange-100 { border-color: rgb(255 237 213); }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-0\\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .absolute { position: absolute; }
+        .top-1\\/4 { top: 25%; }
+        .top-1\\/3 { top: 33.333333%; }
+        .top-1\\/2 { top: 50%; }
+        .left-1\\/4 { left: 25%; }
+        .left-1\\/3 { left: 33.333333%; }
+        .bottom-1\\/3 { bottom: 33.333333%; }
+        .right-1\\/4 { right: 25%; }
+        .right-1\\/3 { right: 33.333333%; }
+        .w-10 { width: 2.5rem; }
+        .h-10 { height: 2.5rem; }
+        .w-8 { width: 2rem; }
+        .h-8 { height: 2rem; }
+        .w-2 { width: 0.5rem; }
+        .h-2 { height: 0.5rem; }
+        .w-1\\.5 { width: 0.375rem; }
+        .h-1\\.5 { height: 0.375rem; }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+        .flex-1 { flex: 1 1 0%; }
+        .shrink-0 { flex-shrink: 0; }
+        .-space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-left: -0.5rem; }
+        .ml-1 { margin-left: 0.25rem; }
+        .ml-4 { margin-left: 1rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mt-0\\.5 { margin-top: 0.125rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .border-t { border-top-width: 1px; }
+        .border-gray-200 { border-color: rgb(229 231 235); }
+        .hover\\:underline:hover { text-decoration: underline; }
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+      `}} />
+    </div>
   );
-}
+};
+
+export default LandingPage;
