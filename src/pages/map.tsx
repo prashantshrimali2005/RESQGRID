@@ -10,6 +10,27 @@ import {
 } from '../supabase';
 import { Search, MapPin, AlertCircle, Home, HeartPulse, Package, Filter, Navigation, X } from 'lucide-react';
 
+const DOME_TEST_PINS = [
+  { id: 'dt1', lat: 31.3260, lng: 75.5761, icon: '🚑', type: 'Medical', title: 'Medical Assistance', description: 'Dome Test: Medical Assistance available in Jalandhar.' },
+  { id: 'dt2', lat: 31.6339, lng: 74.8722, icon: '🛟', type: 'Incident', title: 'Rescue / Evacuation', description: 'Dome Test: Rescue and Evacuation center in Amritsar.' },
+  { id: 'dt3', lat: 30.9009, lng: 75.8572, icon: '💧', type: 'Resource', title: 'Water', description: 'Dome Test: Drinking water distribution in Ludhiana.' },
+  { id: 'dt4', lat: 30.3397, lng: 76.3868, icon: '🍲', type: 'Resource', title: 'Food', description: 'Dome Test: Food camp set up in Patiala.' },
+  { id: 'dt5', lat: 30.2109, lng: 74.9454, icon: '💊', type: 'Medical', title: 'Medicine', description: 'Dome Test: Medicine supplies available in Bathinda.' },
+  { id: 'dt6', lat: 31.5106, lng: 75.9863, icon: '🏠', type: 'Shelter', title: 'Shelter', description: 'Dome Test: Safe shelter provided in Hoshiarpur.' },
+  { id: 'dt7', lat: 31.3980, lng: 75.3882, icon: '🚗', type: 'Resource', title: 'Transportation', description: 'Dome Test: Emergency transportation in Kapurthala.' },
+  { id: 'dt8', lat: 32.0419, lng: 75.4053, icon: '👨‍👩‍👧', type: 'Shelter', title: 'Family Assistance', description: 'Dome Test: Family assistance and reunification in Gurdaspur.' },
+  { id: 'dt9', lat: 30.7333, lng: 76.7794, icon: '🧰', type: 'Resource', title: 'Emergency Supplies', description: 'Dome Test: Emergency toolkits and supplies in Chandigarh.' },
+];
+
+const getEmojiIcon = (emoji: string) => {
+  return `data:image/svg+xml;charset=UTF-8,` + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="15" fill="white" stroke="#333" stroke-width="2" />
+      <text x="50%" y="54%" font-size="18" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
+    </svg>
+  `);
+};
+
 export default function MapPage() {
   const navigate = useNavigate();
   
@@ -54,8 +75,16 @@ export default function MapPage() {
             return;
           }
         }
-      } catch {}
-      if (!isSilent) showToast("Unable to get location.");
+      } catch (err) {
+        console.warn("IP Geolocation failed:", err);
+      }
+      
+      // Final Fallback for Dome Testing
+      const pos = { lat: 31.25471, lng: 75.70434 }; // Punjab center
+      setDroppedPin(pos);
+      setSelectedItem(null);
+      if (map) { map.panTo(pos); map.setZoom(9); }
+      if (!isSilent) showToast("📍 Mock location (Punjab) used for Dome Testing.");
     };
 
     if (!navigator.geolocation) return fallbackToIP(silent);
@@ -68,6 +97,7 @@ export default function MapPage() {
         if (map) { map.panTo(pos); map.setZoom(14); }
       },
       (error) => {
+        console.warn("Geolocation Error:", error);
         fallbackToIP(silent);
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 300000 }
@@ -193,6 +223,16 @@ export default function MapPage() {
                  position={{ lat: r.latitude || 0, lng: r.longitude || 0 }}
                  onClick={() => { setSelectedItem(r); setItemType('Resource'); setDroppedPin(null); }}
                  icon="https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+               />
+            ))}
+
+            {/* Render Dome Test Pins */}
+            {DOME_TEST_PINS.filter(p => filter === 'All' || filter === p.type).map(p => (
+               <Marker
+                 key={p.id}
+                 position={{ lat: p.lat, lng: p.lng }}
+                 onClick={() => { setSelectedItem(p); setItemType(p.type); setDroppedPin(null); }}
+                 icon={getEmojiIcon(p.icon)}
                />
             ))}
 
