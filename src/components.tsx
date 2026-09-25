@@ -24,6 +24,7 @@ export interface HeaderProps {
 
 export function Header({ title = '', showBack = false, showBrand = true }: HeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
@@ -74,10 +75,12 @@ export function Header({ title = '', showBack = false, showBrand = true }: Heade
   const initial = profile?.full_name?.charAt(0).toUpperCase() || emailName.charAt(0).toUpperCase();
   const displayAvatar = localAvatar || profile?.avatar_url;
 
+  const currentPath = location.pathname.replace('/', '') || 'dashboard';
+
   return (
-    <header className="fixed top-0 w-full md:w-[calc(100%-6rem)] md:ml-24 z-50 bg-surface/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-[0_1px_4px_rgba(0,0,0,0.02)] border-b border-outline-variant/20 dark:border-slate-700 pt-safe transition-all">
-      <div className="h-20 px-margin flex items-center justify-between">
-        <div className="flex items-center gap-space-sm">
+    <header className="fixed top-0 left-0 w-full z-[60] bg-white shadow-sm border-b border-border-light pt-safe transition-all">
+      <div className="h-20 px-4 md:px-8 max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-2">
           {showBack && (
             <button aria-label="Go back" className="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-on-surface dark:text-white hover:bg-surface-container-high dark:hover:bg-slate-800 transition-colors active:scale-95" onClick={() => navigate(-1)}>
               <span className="material-symbols-outlined text-[24px]">arrow_back</span>
@@ -92,6 +95,16 @@ export function Header({ title = '', showBack = false, showBrand = true }: Heade
             <h1 className="font-headline-sm text-headline-sm text-on-surface dark:text-white tracking-tight truncate">{title}</h1>
           )}
         </div>
+
+        {/* Central Top Navigation (Matches Landing Page Style) */}
+        <div className="hidden md:flex items-center gap-8">
+          <Link to="/dashboard" className={`font-semibold text-sm transition-colors ${currentPath === 'dashboard' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Dashboard</Link>
+          <Link to="/map" className={`font-semibold text-sm transition-colors ${currentPath === 'map' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Live Map</Link>
+          <Link to="/report" className={`font-semibold text-sm transition-colors ${currentPath === 'report' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Report</Link>
+          <Link to="/resources" className={`font-semibold text-sm transition-colors ${currentPath === 'resources' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Resources</Link>
+          <Link to="/volunteers" className={`font-semibold text-sm transition-colors ${currentPath === 'volunteers' ? 'text-brand-600' : 'text-text-secondary hover:text-text-primary'}`}>Volunteer</Link>
+        </div>
+
         <div className="flex items-center gap-space-sm relative">
           <button ref={btnRef} onClick={() => setShowNotifications(!showNotifications)} className="relative w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-lowest dark:bg-slate-800 shadow-sm text-on-surface-variant dark:text-slate-300 hover:text-primary dark:hover:text-blue-400 hover:bg-surface-bright dark:hover:bg-slate-700 transition-colors" type="button">
             <span className="material-symbols-outlined">notifications</span>
@@ -156,46 +169,34 @@ export function BottomNav({ active }: BottomNavProps = {}) {
   const activePath = active || location.pathname.replace('/', '') || 'dashboard';
 
   const items = [
-    { path: 'dashboard', icon: 'grid_view', label: 'Home', isFab: false },
-    { path: 'map', icon: 'public', label: 'Incidents', isFab: false },
-    { path: 'report', icon: 'campaign', label: 'Report', isFab: true },
-    { path: 'resources', icon: 'inventory_2', label: 'Resources', isFab: false },
-    { path: 'volunteers', icon: 'handshake', label: 'Volunteer', isFab: false },
+    { path: 'dashboard', icon: 'grid_view', label: 'Home' },
+    { path: 'map', icon: 'public', label: 'Incidents' },
+    { path: 'report', icon: 'campaign', label: 'Report' },
+    { path: 'resources', icon: 'inventory_2', label: 'Resources' },
+    { path: 'volunteers', icon: 'handshake', label: 'Volunteer' },
   ];
 
   return (
-    <nav className="fixed bottom-4 left-4 right-4 md:bottom-auto md:top-0 md:left-0 md:right-auto md:h-screen md:w-[96px] md:border-r md:border-outline-variant/20 dark:md:border-slate-700 z-50 md:bg-surface-container-lowest dark:md:bg-slate-800 bg-white/40 dark:bg-[#0f111a]/50 backdrop-blur-2xl md:rounded-none rounded-[32px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border border-white/60 dark:border-white/10 md:border-none pb-safe md:pb-0 transition-colors duration-300">
-      {/* Optional inset highlight for the glass edge on mobile */}
-      <div className="absolute inset-0 rounded-[32px] pointer-events-none border border-white/30 dark:border-white/5 md:hidden"></div>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border-light z-50 bg-white pb-safe transition-colors duration-300">
       
-      <div className="relative flex items-center md:flex-col justify-around md:justify-center md:gap-3 h-[68px] md:h-full px-2 md:px-0 pt-1">
+      <div className="relative flex items-center justify-around h-[72px] px-2">
         
         {items.map(item => {
-          if (item.isFab) {
-            return (
-              <div key={item.path} className="relative flex items-center justify-center -top-6 md:top-0 md:mb-6 z-10 px-2 shrink-0">
-                <Link title={item.label} className="w-14 h-14 md:w-16 md:h-16 rounded-full md:rounded-2xl bg-gradient-to-tr from-primary to-blue-400 dark:from-blue-600 dark:to-blue-400 text-on-primary flex flex-col items-center justify-center shadow-[0_4px_16px_rgba(37,99,235,0.4)] dark:shadow-[0_4px_16px_rgba(37,99,235,0.6)] active:scale-95 transition-all hover:scale-105 hover:-translate-y-1 border border-white/20 dark:border-white/10" to={`/${item.path}`}>
-                  <span className="material-symbols-outlined text-[28px] drop-shadow-sm">{item.icon}</span>
-                </Link>
-              </div>
-            );
-          }
-          
           const isActive = activePath === item.path;
           return (
-            <Link key={item.path} title={item.label} aria-current={isActive ? "page" : undefined} className={`group flex flex-col items-center justify-center min-w-[56px] md:w-full py-1 md:py-2 transition-all`} to={`/${item.path}`}>
-              <div className={`relative flex items-center justify-center w-12 md:w-[64px] h-8 md:h-[36px] rounded-full transition-all duration-300 ${isActive ? 'bg-white/60 dark:bg-white/10 text-primary dark:text-blue-300 shadow-[0_2px_8px_rgba(0,0,0,0.05)] dark:shadow-none' : 'text-slate-600 dark:text-slate-400 group-hover:bg-white/40 dark:group-hover:bg-white/5 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
-                <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: `'FILL' ${isActive ? 1 : 0}` }}>{item.icon}</span>
+            <Link key={item.path} title={item.label} aria-current={isActive ? "page" : undefined} className={`group flex flex-col items-center justify-center w-full transition-all`} to={`/${item.path}`}>
+              <div className={`relative flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-2xl transition-all duration-300 ${isActive ? 'bg-brand-600 text-white shadow-md' : 'text-text-secondary bg-transparent group-hover:bg-brand-50 group-hover:text-brand-600'}`}>
+                <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: `'FILL' ${isActive ? 1 : 0}` }}>{item.icon}</span>
               </div>
-              <span className={`font-label-sm mt-1 text-[10px] md:text-[12px] font-medium transition-colors duration-300 ${isActive ? 'text-slate-800 dark:text-white font-semibold' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white'}`}>{item.label}</span>
+              <span className={`mt-1.5 text-[10px] md:text-xs font-bold transition-colors duration-300 ${isActive ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>{item.label}</span>
             </Link>
           );
         })}
       </div>
       
       {/* Pill gesture handle for mobile (Samsung One UI style) */}
-      <div className="md:hidden flex justify-center pb-2.5 pt-0.5">
-         <div className="w-16 h-[3px] bg-black/20 dark:bg-white/20 rounded-full shadow-[0_1px_2px_rgba(255,255,255,0.5)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.5)]"></div>
+      <div className="md:hidden flex justify-center pb-2 pt-1">
+         <div className="w-16 h-[3px] bg-black/20 rounded-full"></div>
       </div>
     </nav>
   );
